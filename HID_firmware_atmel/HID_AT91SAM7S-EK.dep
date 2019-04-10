@@ -1,0 +1,55 @@
+Dependencies for Project 'HID', Target 'AT91SAM7S-EK': (DO NOT MODIFY !)
+F (.\SAM7.s)(0x51C7C834)(--cpu ARM7TDMI --pd "__EVAL SETA 1" -g --apcs=interwork --pd "__MICROLIB SETA 1"-I C:\Keil\ARM\RV31\INC-I C:\Keil\ARM\CMSIS\Include-I C:\Keil\ARM\Inc\Atmel\SAM7S-o .\obj\sam7.o --depend .\obj\sam7.d)
+F (.\usbcfg.h)(0x51C7C834)()
+F (.\usbhw.c)(0x51C7C834)(--thumb -c --cpu ARM7TDMI -D__EVAL -D__MICROLIB -g -O0 --apcs=interwork -I C:\Keil\ARM\RV31\INC-I C:\Keil\ARM\CMSIS\Include-I C:\Keil\ARM\Inc\Atmel\SAM7S-o .\obj\usbhw.o --depend .\obj\usbhw.d)
+I (C:\Keil\ARM\Inc\Atmel\SAM7S\AT91SAM7S64.H)(0x51C7C73E)
+I (D:\DATN\FirmwareV2\HID\type.h)(0x51C7C834)
+I (D:\DATN\FirmwareV2\HID\usb.h)(0x51C7C834)
+I (D:\DATN\FirmwareV2\HID\usbcfg.h)(0x51C7C834)
+I (D:\DATN\FirmwareV2\HID\usbhw.h)(0x51C7C834)
+I (D:\DATN\FirmwareV2\HID\usbuser.h)(0x51C7C834)
+F (.\usbcore.c)(0x51C7C834)(--thumb -c --cpu ARM7TDMI -D__EVAL -D__MICROLIB -g -O0 --apcs=interwork -I C:\Keil\ARM\RV31\INC-I C:\Keil\ARM\CMSIS\Include-I C:\Keil\ARM\Inc\Atmel\SAM7S-o .\obj\usbcore.o --depend .\obj\usbcore.d)
+I (D:\DATN\FirmwareV2\HID\type.h)(0x51C7C834)
+I (D:\DATN\FirmwareV2\HID\usb.h)(0x51C7C834)
+I (D:\DATN\FirmwareV2\HID\usbcfg.h)(0x51C7C834)
+I (D:\DATN\FirmwareV2\HID\usbhw.h)(0x51C7C834)
+I (D:\DATN\FirmwareV2\HID\usbcore.h)(0x51C7C834)
+I (D:\DATN\FirmwareV2\HID\usbdesc.h)(0x51C7C834)
+I (D:\DATN\FirmwareV2\HID\usbuser.h)(0x51C7C834)
+I (D:\DATN\FirmwareV2\HID\hid.h)(0x51C7C834)
+I (D:\DATN\FirmwareV2\HID\hiduser.h)(0x51C7C834)
+F (.\usbdesc.c)(0x5CAAB9FE)(--thumb -c --cpu ARM7TDMI -D__EVAL -D__MICROLIB -g -O0 --apcs=interwork -I C:\Keil\ARM\RV31\INC-I C:\Keil\ARM\CMSIS\Include-I C:\Keil\ARM\Inc\Atmel\SAM7S-o .\obj\usbdesc.o --depend .\obj\usbdesc.d)
+I (D:\DATN\FirmwareV2\HID\type.h)(0x51C7C834)
+I (D:\DATN\FirmwareV2\HID\usb.h)(0x51C7C834)
+I (D:\DATN\FirmwareV2\HID\hid.h)(0x51C7C834)
+I (D:\DATN\FirmwareV2\HID\usbcfg.h)(0x51C7C834)
+I (D:\DATN\FirmwareV2\HID\usbdesc.h)(0x51C7C834)
+F (.\usbuser.c)(0x5CAB0E93)(--thumb -c --cpu ARM7TDMI -D__EVAL -D__MICROLIB -g -O0 --apcs=interwork -I C:\Keil\ARM\RV31\INC-I C:\Keil\ARM\CMSIS\Include-I C:\Keil\ARM\Inc\Atmel\SAM7S-o .\obj\usbuser.o --depend .\obj\usbuser.d)
+I (C:\Keil\ARM\Inc\Atmel\SAM7S\AT91SAM7S64.H)(0x51C7C73E)
+I (D:\DATN\FirmwareV2\HID\Board.h)(0x51C7C842)
+I (D:\DATN\FirmwareV2\HID\type.h)(0x51C7C834)
+I (D:\DATN\FirmwareV2\HID\usb.h)(0x51C7C834)
+I (D:\DATN\FirmwareV2\HID\usbcfg.h)(0x51C7C834)
+I (D:\DATN\FirmwareV2\HID\usbhw.h)(0x51C7C834)
+I (D:\DATN\FirmwareV2\HID\usbcore.h)(0x51C7C834)
+I (D:\DATN\FirmwareV2\HID\usbuser.h)(0x51C7C834)
+I (D:\DATN\FirmwareV2\HID\demo.h)(0x51C7C834)
+F (.\hiduser.c)(0x51C7C834)(--thumb -c --cpu ARM7TDMI -D__EVAL -D__MICROLIB -g -O0 --apcs=interwork -I C:\Keil\ARM\RV31\INC-I C:\Keil\ARM\CMSIS\Include-I C:\Keil\ARM\Inc\Atmel\SAM7S-o .\obj\hiduser.o --depend .\obj\hiduser.d)
+I (D:\DATN\FirmwareV2\HID\type.h)(0x51C7C834)
+I (D:\DATN\FirmwareV2\HID\usb.h)(0x51C7C834)
+I (D:\DATN\FirmwareV2\HID\hid.h)(0x51C7C834)
+I (D:\DATN\FirmwareV2\HID\usbcfg.h)(0x51C7C834)
+I (D:\DATN\FirmwareV2\HID\usbcore.h)(0x51C7C834)
+I (D:\DATN\FirmwareV2\HID\hiduser.h)(0x51C7C834)
+I (D:\DATN\FirmwareV2\HID\demo.h)(0x51C7C834)
+F (.\demo.c)(0x5CAB215F)(--thumb -c --cpu ARM7TDMI -D__EVAL -D__MICROLIB -g -O0 --apcs=interwork -I C:\Keil\ARM\RV31\INC-I C:\Keil\ARM\CMSIS\Include-I C:\Keil\ARM\Inc\Atmel\SAM7S-o .\obj\demo.o --depend .\obj\demo.d)
+I (C:\Keil\ARM\Inc\Atmel\SAM7S\AT91SAM7S64.H)(0x51C7C73E)
+I (D:\DATN\FirmwareV2\HID\Board.h)(0x51C7C842)
+I (D:\DATN\FirmwareV2\HID\type.h)(0x51C7C834)
+I (D:\DATN\FirmwareV2\HID\usb.h)(0x51C7C834)
+I (D:\DATN\FirmwareV2\HID\usbcfg.h)(0x51C7C834)
+I (D:\DATN\FirmwareV2\HID\usbhw.h)(0x51C7C834)
+I (D:\DATN\FirmwareV2\HID\usbcore.h)(0x51C7C834)
+I (D:\DATN\FirmwareV2\HID\demo.h)(0x51C7C834)
+I (D:\DATN\FirmwareV2\HID\Global.h)(0x5CAAC1DE)
+F (.\Abstract.txt)(0x51C7C834)()
