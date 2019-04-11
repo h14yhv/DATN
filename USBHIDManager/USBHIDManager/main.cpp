@@ -6,8 +6,6 @@
 
 DEVICE_DATA g_DeviceData = {0};
 
-
-
 LONG __cdecl _tmain(
     LONG     Argc,
     LPTSTR * Argv
@@ -19,13 +17,14 @@ LONG __cdecl _tmain(
     BOOL                  noDevice;
     ULONG                 lengthReceived;
 
+	ULONG ulBytesTransferred = 0;
+	UCHAR szBuffer[MAX_PATH];
+	memset(szBuffer, 0, MAX_PATH);
+	strcpy_s(szBuffer, MAX_PATH, "Hello from User");
+
     UNREFERENCED_PARAMETER(Argc);
     UNREFERENCED_PARAMETER(Argv);
 
-    //
-    // Find a device connected to the system that has WinUSB installed using our
-    // INF
-    //
     hr = OpenDevice(&g_DeviceData, &noDevice);
 
     if (FAILED(hr)) {
@@ -41,10 +40,7 @@ LONG __cdecl _tmain(
 		RET_THIS;
     }
 
-    //
-    // Get device descriptor
-    //
-    bResult = WinUsb_GetDescriptor(g_DeviceData.WinUsbHandle,
+    bResult = WinUsb_GetDescriptor(g_DeviceData.hInterfaceHandle,
                                    USB_DEVICE_DESCRIPTOR_TYPE,
                                    0,
                                    0,
@@ -61,9 +57,6 @@ LONG __cdecl _tmain(
 		RET_THIS;
     }
 
-    //
-    // Print a few parts of the device descriptor
-    //
     DebugPrintW(L"Device found: VID_%04X&PID_%04X; bcdUsb %04X\n",
            deviceDesc.idVendor,
            deviceDesc.idProduct,
@@ -71,8 +64,8 @@ LONG __cdecl _tmain(
 
 	GetConfigDevice();
 
-	ReadFromDevice();
-	WriteToDevice();
+	ReadFromDevice(szBuffer, strlen(szBuffer), &ulBytesTransferred);
+	WriteToDevice(szBuffer, strlen(szBuffer), &ulBytesTransferred);
 	
     CloseDevice(&g_DeviceData);
 

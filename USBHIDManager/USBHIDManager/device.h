@@ -15,7 +15,7 @@ DEFINE_GUID(GUID_DEVINTERFACE_USBHIDManager,
 typedef struct _DEVICE_DATA {
 
     BOOL                    HandlesOpen;
-    WINUSB_INTERFACE_HANDLE WinUsbHandle;
+    WINUSB_INTERFACE_HANDLE hInterfaceHandle;
     HANDLE                  DeviceHandle;
     TCHAR                   DevicePath[MAX_PATH];
 	UCHAR					DeviceSpeed;
@@ -37,6 +37,6 @@ CloseDevice(
 
 BOOL GetConfigDevice();
 
-BOOL ReadFromDevice();
+BOOL ReadFromDevice(PUCHAR szBuffer, ULONG ulBufferLength, PULONG pulLenghTransferred);
 
-BOOL WriteToDevice();
+BOOL WriteToDevice(PUCHAR szBuffer, ULONG ulBufferLength, PULONG pulLenghTransferred);

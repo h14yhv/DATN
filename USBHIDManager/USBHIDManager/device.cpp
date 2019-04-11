@@ -74,7 +74,7 @@ Return value:
 	}
 
 	bResult = WinUsb_Initialize(DeviceData->DeviceHandle,
-		&DeviceData->WinUsbHandle);
+		&DeviceData->hInterfaceHandle);
 
 	if (FALSE == bResult) {
 
@@ -91,34 +91,16 @@ VOID
 CloseDevice(
 	_Inout_ PDEVICE_DATA DeviceData
 )
-/*++
-
-Routine description:
-
-	Perform required cleanup when the device is no longer needed.
-
-	If OpenDevice failed, do nothing.
-
-Arguments:
-
-	DeviceData - Struct filled in by OpenDevice
-
-Return value:
-
-	None
-
---*/
 {
-	if (FALSE == DeviceData->HandlesOpen) {
-
-		//
-		// Called on an uninitialized DeviceData
-		//
+	if (FALSE == DeviceData->HandlesOpen)
+	{
 		return;
 	}
 
-	WinUsb_Free(DeviceData->WinUsbHandle);
+	WinUsb_Free(DeviceData->hInterfaceHandle);
 	CloseHandle(DeviceData->DeviceHandle);
+	DeviceData->hInterfaceHandle = NULL;
+	DeviceData->DeviceHandle = NULL;
 	DeviceData->HandlesOpen = FALSE;
 
 	return;
@@ -279,13 +261,13 @@ Return value:
 BOOL GetConfigDevice()
 {
 	BOOL bResult;
-	USB_INTERFACE_DESCRIPTOR ifaceDescriptor = {0};
+	USB_INTERFACE_DESCRIPTOR ifaceDescriptor = { 0 };
 	WINUSB_PIPE_INFORMATION pipeInfo;
 	UCHAR speed;
 	ULONG length;
 
 	length = sizeof(UCHAR);
-	bResult = WinUsb_QueryDeviceInformation(g_DeviceData.WinUsbHandle,
+	bResult = WinUsb_QueryDeviceInformation(g_DeviceData.hInterfaceHandle,
 		DEVICE_SPEED,
 		&length,
 		&speed);
@@ -294,23 +276,20 @@ BOOL GetConfigDevice()
 		PrintError(L"Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
 		RET_THIS_STATUS(bResult, FALSE);
 	}
-	//[2]
-	if (bResult)
-	{
-		g_DeviceData.DeviceSpeed = speed;
-		bResult = WinUsb_QueryInterfaceSettings(g_DeviceData.WinUsbHandle, 0, &ifaceDescriptor);
-		DebugPrintW(L"DeviceSpeed: %d", g_DeviceData.DeviceSpeed);
-	}
+
+	g_DeviceData.DeviceSpeed = speed;
+	bResult = WinUsb_QueryInterfaceSettings(g_DeviceData.hInterfaceHandle, 0, &ifaceDescriptor);
+	DebugPrintW(L"DeviceSpeed: %d", g_DeviceData.DeviceSpeed);
+
 	if (bResult)
 	{
 		for (int i = 0; i < ifaceDescriptor.bNumEndpoints; i++)
 		{
-			//[3]
-			bResult = WinUsb_QueryPipe(g_DeviceData.WinUsbHandle,
+			bResult = WinUsb_QueryPipe(g_DeviceData.hInterfaceHandle,
 				0,
 				(UCHAR)i,
 				&pipeInfo);
-			//[4]
+
 			if (pipeInfo.PipeType == UsbdPipeTypeBulk &&
 				USB_ENDPOINT_DIRECTION_IN(pipeInfo.PipeId))
 			{
@@ -339,49 +318,41 @@ RET_LABEL:
 	return bResult;
 }
 
-BOOL WriteToDevice()
+BOOL WriteToDevice(PUCHAR szBuffer, ULONG ulBufferLength, PULONG pulLenghTransferred)
 {
-//	USHORT bufSize = 12;
-	BYTE szBuffer[64];
 	BOOL bResult;
-	ULONG bytesWritten;
-	//[1]
-/*	SendMessage(hwndWriteEdit, EM_GETLINE, 0, (LPARAM)szBuffer);*/
 
-	//[2]
-	bResult = WinUsb_WritePipe(g_DeviceData.WinUsbHandle,
+	bResult = WinUsb_FlushPipe(g_DeviceData.hInterfaceHandle, g_DeviceData.uBulkOutPipeId);
+	if (bResult == FALSE)
+	{
+		PrintError(L"Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		return FALSE;
+	}
+	bResult = WinUsb_WritePipe(g_DeviceData.hInterfaceHandle,
 		g_DeviceData.uBulkOutPipeId,
 		szBuffer,
-		64,
-		&bytesWritten,
+		ulBufferLength,
+		pulLenghTransferred,
 		NULL);
 	if (bResult == FALSE)
 	{
 		PrintError(L"Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		return FALSE;
 	}
-	else
-	{
-		DebugPrintW(L"Write OK");
-	}
-	return bResult;
+
+	DebugPrintW(L"Write OK");
+	return TRUE;
 }
 
-BOOL ReadFromDevice()
+BOOL ReadFromDevice(PUCHAR szBuffer, ULONG ulBufferLength, PULONG pulLenghTransferred)
 {
-//	USHORT bufSize = 12;
-	CHAR szBuffer[64];
 	BOOL bResult;
-	ULONG bytesRead = 0;
 
- 	memset(szBuffer, 0, 64);
- 	strcpy_s(szBuffer, 64, "Hello from User");
- 	DebugPrint("String Got: %s", szBuffer);
-
-	bResult = WinUsb_ReadPipe(g_DeviceData.WinUsbHandle,
+	bResult = WinUsb_ReadPipe(g_DeviceData.hInterfaceHandle,
 		g_DeviceData.uBulkInPipeId,
-		(BYTE*)szBuffer,
-		64,
-		&bytesRead,
+		szBuffer,
+		ulBufferLength,
+		pulLenghTransferred,
 		NULL);
 	if (bResult == FALSE)
 	{
@@ -389,8 +360,8 @@ BOOL ReadFromDevice()
 	}
 	else
 	{
-		DebugPrintW(L"Read OK, %d"), bytesRead;
-		DebugPrint("\nString Got: %s", szBuffer);
+		DebugPrint("Read OK, %d"), *pulLenghTransferred;
+		DebugPrint("String Got: %s", szBuffer);
 	}
 	return bResult;
 }
