@@ -318,7 +318,7 @@ RET_LABEL:
 	return bResult;
 }
 
-BOOL WriteToDevice(PUCHAR szBuffer, ULONG ulBufferLength, PULONG pulLenghTransferred)
+BOOL WriteToDevice(PCHAR szBuffer, ULONG ulBufferLength, PULONG pulLenghTransferred)
 {
 	BOOL bResult;
 
@@ -330,7 +330,7 @@ BOOL WriteToDevice(PUCHAR szBuffer, ULONG ulBufferLength, PULONG pulLenghTransfe
 	}
 	bResult = WinUsb_WritePipe(g_DeviceData.hInterfaceHandle,
 		g_DeviceData.uBulkOutPipeId,
-		szBuffer,
+		(PUCHAR)szBuffer,
 		ulBufferLength,
 		pulLenghTransferred,
 		NULL);
@@ -344,13 +344,13 @@ BOOL WriteToDevice(PUCHAR szBuffer, ULONG ulBufferLength, PULONG pulLenghTransfe
 	return TRUE;
 }
 
-BOOL ReadFromDevice(PUCHAR szBuffer, ULONG ulBufferLength, PULONG pulLenghTransferred)
+BOOL ReadFromDevice(PCHAR szBuffer, ULONG ulBufferLength, PULONG pulLenghTransferred)
 {
 	BOOL bResult;
 
 	bResult = WinUsb_ReadPipe(g_DeviceData.hInterfaceHandle,
 		g_DeviceData.uBulkInPipeId,
-		szBuffer,
+		(PUCHAR)szBuffer,
 		ulBufferLength,
 		pulLenghTransferred,
 		NULL);

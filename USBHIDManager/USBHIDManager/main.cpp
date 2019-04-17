@@ -18,7 +18,7 @@ LONG __cdecl _tmain(
     ULONG                 lengthReceived;
 
 	ULONG ulBytesTransferred = 0;
-	UCHAR szBuffer[MAX_PATH];
+	CHAR szBuffer[MAX_PATH];
 	memset(szBuffer, 0, MAX_PATH);
 	strcpy_s(szBuffer, MAX_PATH, "Hello from User");
 

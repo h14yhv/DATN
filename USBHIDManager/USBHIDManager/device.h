@@ -37,6 +37,6 @@ CloseDevice(
 
 BOOL GetConfigDevice();
 
-BOOL ReadFromDevice(PUCHAR szBuffer, ULONG ulBufferLength, PULONG pulLenghTransferred);
+BOOL ReadFromDevice(PCHAR szBuffer, ULONG ulBufferLength, PULONG pulLenghTransferred);
 
-BOOL WriteToDevice(PUCHAR szBuffer, ULONG ulBufferLength, PULONG pulLenghTransferred);
+BOOL WriteToDevice(PCHAR szBuffer, ULONG ulBufferLength, PULONG pulLenghTransferred);
