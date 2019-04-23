@@ -21,6 +21,15 @@ LONG __cdecl _tmain(
 	CHAR szBuffer[MAX_PATH];
 	memset(szBuffer, 0, MAX_PATH);
 	strcpy_s(szBuffer, MAX_PATH, "Hello from User");
+	OVERLAPPED OverlapppedSync = {0};
+	OverlapppedSync.hEvent = CreateEventW(NULL, FALSE, FALSE, L"AuthenticateEvent");
+	if (OverlapppedSync.hEvent == NULL)
+	{
+		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		return FALSE;
+	}
+
+	DebugPrint("Size of CMD: %d", sizeof(CMD));
 
     UNREFERENCED_PARAMETER(Argc);
     UNREFERENCED_PARAMETER(Argv);
@@ -40,7 +49,7 @@ LONG __cdecl _tmain(
 		RET_THIS;
     }
 
-    bResult = WinUsb_GetDescriptor(g_DeviceData.hInterfaceHandle,
+    bResult = WinUsb_GetDescriptor(g_DeviceData.hWinUSBInterfaceHandle,
                                    USB_DEVICE_DESCRIPTOR_TYPE,
                                    0,
                                    0,
@@ -57,19 +66,22 @@ LONG __cdecl _tmain(
 		RET_THIS;
     }
 
-    DebugPrintW(L"Device found: VID_%04X&PID_%04X; bcdUsb %04X\n",
+    DebugPrint("Device found: VID_%04X&PID_%04X; bcdUsb %04X\n",
            deviceDesc.idVendor,
            deviceDesc.idProduct,
            deviceDesc.bcdUSB);
 
 	GetConfigDevice();
 
-	ReadFromDevice(szBuffer, strlen(szBuffer), &ulBytesTransferred);
-	WriteToDevice(szBuffer, strlen(szBuffer), &ulBytesTransferred);
+ 
+// 	WriteToDevice(NULL, (ULONG)strlen(szBuffer), &ulBytesTransferred, TODO);
 	
+	ReadFromDevice(NULL, (ULONG)strlen(szBuffer), &ulBytesTransferred, &OverlapppedSync, WAIT_TIME);
+
     CloseDevice(&g_DeviceData);
 
 RET_LABEL:
+	CLOSE_HANDLE(OverlapppedSync.hEvent);
 	system("pause");
     return 0;
 }

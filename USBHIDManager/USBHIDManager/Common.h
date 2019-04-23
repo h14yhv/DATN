@@ -110,6 +110,6 @@ typedef struct _DB_ENTRY
 
 void DebugPrintW(__in LPCWSTR pszFormat, ...);
 void DebugPrint(__in LPCSTR pszFormat, ...);
-BOOL ErrorExit(LPWSTR lpszFunction);
-BOOLEAN PrintError(__in LPCWSTR pszFormat, ...);
+BOOL ErrorExit(LPSTR lpszFunction);
+BOOLEAN PrintError(__in LPCSTR pszFormat, ...);
 

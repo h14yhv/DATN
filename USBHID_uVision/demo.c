@@ -16,7 +16,6 @@
 #include <LPC23xx.H>                        /* LPC23xx/LPC24xx definitions */
 #include <stdio.h>
 #include "type.h"
-
 #include "usb.h"
 #include "usbcfg.h"
 #include "usbhw.h"
@@ -105,18 +104,21 @@ extern __irq void ADC_IRQHandler (void);
 /* Main Program */
 int main (void) 
 {
-  //PINSEL10 = 0;                             /* Disable ETM interface */
-  //FIO2DIR |= LED_MSK;                       /* LEDs, port 2, bit 0~7 output only */
+	short AD_old, AD_value, AD_print;
+  PINSEL10 = 0;                             /* Disable ETM interface */
+  FIO2DIR |= LED_MSK;                       /* LEDs, port 2, bit 0~7 output only */
 	
-	/* Enable and setup timer interrupt, start timer                            */
+	LED_Init();    
+	
+	  /* Enable and setup timer interrupt, start timer                            */
   T0MR0         = 11999;                       /* 1msec = 12000-1 at 12.0 MHz */
   T0MCR         = 3;                           /* Interrupt and Reset on MR0  */
   T0TCR         = 1;                           /* Timer0 Enable               */
   VICVectAddr4  = (unsigned long)T0_IRQHandler;/* Set Interrupt Vector        */
   VICVectCntl4  = 15;                          /* use it for Timer0 Interrupt */
   VICIntEnable  = (1  << 4);                   /* Enable Timer0 Interrupt     */
-
-  /* Power enable, Setup pin, enable and setup AD converter interrupt         */
+	
+	  /* Power enable, Setup pin, enable and setup AD converter interrupt         */
   PCONP        |= (1 << 12);                   /* Enable power to AD block    */
   PINSEL1       = 0x4000;                      /* AD0.0 pin function select   */
   AD0INTEN      = (1 <<  0);                   /* CH0 enable interrupt        */
@@ -131,18 +133,13 @@ int main (void)
   lcd_clear();
   lcd_print ("MCB2300 HID Demo");
   set_cursor (0, 1);
-  lcd_print ("  www.huy5  ");
-
-
+  lcd_print ("  www.huyhv8  ");
 	
   printf("\r\n*****************************************\r\n\r\n");
      
   printf("EToken 2.0\r\n");	
-  printf("Copyright@2010\r\n");
-  printf("Luong Anh Hoang\r\n");
+  printf("Hoang Viet Huy\r\n");
   printf("SOICT-HUT-Vietnam\r\n");
-  printf("Project KC-0111\r\n");
-  printf("hoangla-fit@mail.hut.edu.vn\r\n");
   printf("\r\n*****************************************\r\n");
   printf("USB Initializing...\r\n");
   
@@ -151,9 +148,22 @@ int main (void)
 
   while (1)
 	{
-		printf("Authentication successful\n");
-		//sendchar(92);
-	}		/* Loop forever */
+	//	printf ("1 second\n\r");
+		AD_value = AD_last;                 /* Read AD_last value                 */
+    if (AD_value != AD_last)            /* Make sure that AD interrupt did    */
+      AD_value = AD_last;               /* not interfere with value reading   */
+    AD_print  = AD_value;               /* Get unscaled value for printout    */
+    AD_value /= 13;                     /* Scale to AD_Value to 0 - 78        */
+    if (AD_old != AD_value)  {          /* If AD value has changed            */
+      AD_old = AD_value;
+      Disp_Bargraph(0, 1, AD_value);    /* Display bargraph according to AD   */
+    }
+    if (clock_1s) 
+			{
+      clock_1s = 0;
+     // printf ("1 second\n\r");
+    }
+	}		
 }
 
 

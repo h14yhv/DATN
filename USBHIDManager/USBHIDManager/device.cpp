@@ -5,13 +5,6 @@
 extern DEVICE_DATA g_DeviceData;
 
 HRESULT
-RetrieveDevicePath(
-	_Out_bytecap_(BufLen) LPTSTR DevicePath,
-	_In_                  ULONG  BufLen,
-	_Out_opt_             PBOOL  FailureDeviceNotFound
-);
-
-HRESULT
 OpenDevice(
 	_Out_     PDEVICE_DATA DeviceData,
 	_Out_opt_ PBOOL        FailureDeviceNotFound
@@ -48,7 +41,7 @@ Return value:
 	HRESULT hr = S_OK;
 	BOOL    bResult;
 
-	DeviceData->HandlesOpen = FALSE;
+	DeviceData->bIsHandlesOpen = FALSE;
 
 	hr = RetrieveDevicePath(DeviceData->DevicePath,
 		sizeof(DeviceData->DevicePath),
@@ -59,7 +52,7 @@ Return value:
 		return hr;
 	}
 
-	DeviceData->DeviceHandle = CreateFile(DeviceData->DevicePath,
+	DeviceData->hFileDeviceHandle = CreateFile(DeviceData->DevicePath,
 		GENERIC_WRITE | GENERIC_READ,
 		FILE_SHARE_WRITE | FILE_SHARE_READ,
 		NULL,
@@ -67,23 +60,23 @@ Return value:
 		FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,
 		NULL);
 
-	if (INVALID_HANDLE_VALUE == DeviceData->DeviceHandle) {
+	if (INVALID_HANDLE_VALUE == DeviceData->hFileDeviceHandle) {
 
 		hr = HRESULT_FROM_WIN32(GetLastError());
 		return hr;
 	}
 
-	bResult = WinUsb_Initialize(DeviceData->DeviceHandle,
-		&DeviceData->hInterfaceHandle);
+	bResult = WinUsb_Initialize(DeviceData->hFileDeviceHandle,
+		&DeviceData->hWinUSBInterfaceHandle);
 
 	if (FALSE == bResult) {
 
 		hr = HRESULT_FROM_WIN32(GetLastError());
-		CloseHandle(DeviceData->DeviceHandle);
+		CloseHandle(DeviceData->hFileDeviceHandle);
 		return hr;
 	}
 
-	DeviceData->HandlesOpen = TRUE;
+	DeviceData->bIsHandlesOpen = TRUE;
 	return hr;
 }
 
@@ -92,16 +85,16 @@ CloseDevice(
 	_Inout_ PDEVICE_DATA DeviceData
 )
 {
-	if (FALSE == DeviceData->HandlesOpen)
+	if (FALSE == DeviceData->bIsHandlesOpen)
 	{
 		return;
 	}
 
-	WinUsb_Free(DeviceData->hInterfaceHandle);
-	CloseHandle(DeviceData->DeviceHandle);
-	DeviceData->hInterfaceHandle = NULL;
-	DeviceData->DeviceHandle = NULL;
-	DeviceData->HandlesOpen = FALSE;
+	WinUsb_Free(DeviceData->hWinUSBInterfaceHandle);
+	CloseHandle(DeviceData->hFileDeviceHandle);
+	DeviceData->hWinUSBInterfaceHandle = NULL;
+	DeviceData->hFileDeviceHandle = NULL;
+	DeviceData->bIsHandlesOpen = FALSE;
 
 	return;
 }
@@ -145,6 +138,7 @@ Return value:
 	ULONG                            length;
 	ULONG                            requiredLength = 0;
 	HRESULT                          hr;
+	INT								 iDeviceNumber = 0;
 
 	if (NULL != FailureDeviceNotFound) {
 
@@ -161,6 +155,7 @@ Return value:
 
 	if (deviceInfo == INVALID_HANDLE_VALUE) {
 
+		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
 		hr = HRESULT_FROM_WIN32(GetLastError());
 		return hr;
 	}
@@ -176,11 +171,9 @@ Return value:
 		0,
 		&interfaceData);
 
-	if (FALSE == bResult) {
-
-		//
-		// We would see this error if no devices were found
-		//
+	if (FALSE == bResult)
+	{
+		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
 		if (ERROR_NO_MORE_ITEMS == GetLastError() &&
 			NULL != FailureDeviceNotFound) {
 
@@ -192,65 +185,70 @@ Return value:
 		return hr;
 	}
 
-	//
-	// Get the size of the path string
-	// We expect to get a failure with insufficient buffer
-	//
-	bResult = SetupDiGetDeviceInterfaceDetail(deviceInfo,
-		&interfaceData,
-		NULL,
-		0,
-		&requiredLength,
-		NULL);
-
-	if (FALSE == bResult && ERROR_INSUFFICIENT_BUFFER != GetLastError()) {
-
-		hr = HRESULT_FROM_WIN32(GetLastError());
-		SetupDiDestroyDeviceInfoList(deviceInfo);
-		return hr;
-	}
-
-	//
-	// Allocate temporary space for SetupDi structure
-	//
-	detailData = (PSP_DEVICE_INTERFACE_DETAIL_DATA)
-		LocalAlloc(LMEM_FIXED, requiredLength);
-
-	if (NULL == detailData)
+	do
 	{
-		hr = E_OUTOFMEMORY;
-		SetupDiDestroyDeviceInfoList(deviceInfo);
-		return hr;
-	}
+		//
+		// Get the size of the path string
+		// We expect to get a failure with insufficient buffer
+		//
+		bResult = SetupDiGetDeviceInterfaceDetail(deviceInfo,
+			&interfaceData,
+			NULL,
+			0,
+			&requiredLength,
+			NULL);
 
-	detailData->cbSize = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA);
-	length = requiredLength;
+		if (FALSE == bResult && ERROR_INSUFFICIENT_BUFFER != GetLastError()) {
 
-	//
-	// Get the interface's path string
-	//
-	bResult = SetupDiGetDeviceInterfaceDetail(deviceInfo,
-		&interfaceData,
-		detailData,
-		length,
-		&requiredLength,
-		NULL);
+			hr = HRESULT_FROM_WIN32(GetLastError());
+			SetupDiDestroyDeviceInfoList(deviceInfo);
+			return hr;
+		}
 
-	if (FALSE == bResult)
-	{
-		hr = HRESULT_FROM_WIN32(GetLastError());
-		LocalFree(detailData);
-		SetupDiDestroyDeviceInfoList(deviceInfo);
-		return hr;
-	}
+		//
+		// Allocate temporary space for SetupDi structure
+		//
+		detailData = (PSP_DEVICE_INTERFACE_DETAIL_DATA)
+			LocalAlloc(LMEM_FIXED, requiredLength);
 
-	//
-	// Give path to the caller. SetupDiGetDeviceInterfaceDetail ensured
-	// DevicePath is NULL-terminated.
-	//
-	hr = StringCbCopy(DevicePath,
-		BufLen,
-		detailData->DevicePath);
+		if (NULL == detailData)
+		{
+			hr = E_OUTOFMEMORY;
+			SetupDiDestroyDeviceInfoList(deviceInfo);
+			return hr;
+		}
+
+		detailData->cbSize = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA);
+		length = requiredLength;
+
+		//
+		// Get the interface's path string
+		//
+		bResult = SetupDiGetDeviceInterfaceDetail(deviceInfo,
+			&interfaceData,
+			detailData,
+			length,
+			&requiredLength,
+			NULL);
+
+		if (FALSE == bResult)
+		{
+			hr = HRESULT_FROM_WIN32(GetLastError());
+			LocalFree(detailData);
+			SetupDiDestroyDeviceInfoList(deviceInfo);
+			return hr;
+		}
+		iDeviceNumber++;
+		//
+		// Give path to the caller. SetupDiGetDeviceInterfaceDetail ensured
+		// DevicePath is NULL-terminated.
+		//
+		hr = StringCbCopy(DevicePath,
+			BufLen,
+			detailData->DevicePath);
+		DebugPrint("Device Path: %s", DevicePath);
+	} while (SetupDiEnumDeviceInterfaces(deviceInfo, NULL, &GUID_DEVINTERFACE_USBHIDManager, iDeviceNumber, &interfaceData));
+
 
 	LocalFree(detailData);
 	SetupDiDestroyDeviceInfoList(deviceInfo);
@@ -267,25 +265,23 @@ BOOL GetConfigDevice()
 	ULONG length;
 
 	length = sizeof(UCHAR);
-	bResult = WinUsb_QueryDeviceInformation(g_DeviceData.hInterfaceHandle,
+	bResult = WinUsb_QueryDeviceInformation(g_DeviceData.hWinUSBInterfaceHandle,
 		DEVICE_SPEED,
 		&length,
 		&speed);
 	if (bResult == FALSE)
 	{
-		PrintError(L"Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
 		RET_THIS_STATUS(bResult, FALSE);
 	}
-
-	g_DeviceData.DeviceSpeed = speed;
-	bResult = WinUsb_QueryInterfaceSettings(g_DeviceData.hInterfaceHandle, 0, &ifaceDescriptor);
-	DebugPrintW(L"DeviceSpeed: %d", g_DeviceData.DeviceSpeed);
+	bResult = WinUsb_QueryInterfaceSettings(g_DeviceData.hWinUSBInterfaceHandle, 0, &ifaceDescriptor);
+	DebugPrint("DeviceSpeed: %d", speed);
 
 	if (bResult)
 	{
 		for (int i = 0; i < ifaceDescriptor.bNumEndpoints; i++)
 		{
-			bResult = WinUsb_QueryPipe(g_DeviceData.hInterfaceHandle,
+			bResult = WinUsb_QueryPipe(g_DeviceData.hWinUSBInterfaceHandle,
 				0,
 				(UCHAR)i,
 				&pipeInfo);
@@ -294,18 +290,18 @@ BOOL GetConfigDevice()
 				USB_ENDPOINT_DIRECTION_IN(pipeInfo.PipeId))
 			{
 				g_DeviceData.uBulkInPipeId = pipeInfo.PipeId;
-				DebugPrintW(L"BulkInPipeId: %d", g_DeviceData.uBulkInPipeId);
+				DebugPrint("BulkInPipeId: %d", g_DeviceData.uBulkInPipeId);
 			}
 			else if (pipeInfo.PipeType == UsbdPipeTypeBulk &&
 				USB_ENDPOINT_DIRECTION_OUT(pipeInfo.PipeId))
 			{
 				g_DeviceData.uBulkOutPipeId = pipeInfo.PipeId;
-				DebugPrintW(L"uBulkOutPipeId: %d", g_DeviceData.uBulkOutPipeId);
+				DebugPrint("uBulkOutPipeId: %d", g_DeviceData.uBulkOutPipeId);
 			}
 			else if (pipeInfo.PipeType == UsbdPipeTypeInterrupt)
 			{
 				g_DeviceData.uInterruptPipeId = pipeInfo.PipeId;
-				DebugPrintW(L"uInterruptPipeId: %d", g_DeviceData.uInterruptPipeId);
+				DebugPrint("uInterruptPipeId: %d", g_DeviceData.uInterruptPipeId);
 			}
 			else
 			{
@@ -318,50 +314,269 @@ RET_LABEL:
 	return bResult;
 }
 
-BOOL WriteToDevice(PCHAR szBuffer, ULONG ulBufferLength, PULONG pulLenghTransferred)
+BOOL WriteToDevice(PUCHAR pDataMessage, ULONG ulBufferLength, PULONG pulLenghTransferred, LPOVERLAPPED pOverlapppedSync, DWORD dwTimeOut)
 {
-	BOOL bResult;
+	BOOL bResult = FALSE;
+	DWORD dwRetWait = 0;
 
-	bResult = WinUsb_FlushPipe(g_DeviceData.hInterfaceHandle, g_DeviceData.uBulkOutPipeId);
-	if (bResult == FALSE)
-	{
-		PrintError(L"Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
-		return FALSE;
-	}
-	bResult = WinUsb_WritePipe(g_DeviceData.hInterfaceHandle,
+	bResult = WinUsb_WritePipe(g_DeviceData.hWinUSBInterfaceHandle,
 		g_DeviceData.uBulkOutPipeId,
-		(PUCHAR)szBuffer,
+		(PUCHAR)pDataMessage,
 		ulBufferLength,
 		pulLenghTransferred,
-		NULL);
-	if (bResult == FALSE)
+		pOverlapppedSync);
+	if (bResult == FALSE && GetLastError() != ERROR_IO_PENDING)
 	{
-		PrintError(L"Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
 		return FALSE;
 	}
 
-	DebugPrintW(L"Write OK");
+	if (pOverlapppedSync->hEvent == NULL)
+	{
+		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		return FALSE;
+	}
+
+	dwRetWait = WaitForSingleObject(pOverlapppedSync->hEvent, dwTimeOut);
+	if (dwRetWait == WAIT_TIMEOUT || dwRetWait == WAIT_FAILED)
+	{
+		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		return FALSE;
+	}
+
 	return TRUE;
 }
 
-BOOL ReadFromDevice(PCHAR szBuffer, ULONG ulBufferLength, PULONG pulLenghTransferred)
+BOOL ReadFromDevice(PUCHAR pDataMessage, ULONG ulBufferLength, PULONG pulLenghTransferred, LPOVERLAPPED pOverlapppedSync, DWORD dwTimeOut)
 {
 	BOOL bResult;
+	DWORD dwRetWait = 0;
 
-	bResult = WinUsb_ReadPipe(g_DeviceData.hInterfaceHandle,
+	bResult = WinUsb_ReadPipe(g_DeviceData.hWinUSBInterfaceHandle,
 		g_DeviceData.uBulkInPipeId,
-		(PUCHAR)szBuffer,
+		(PUCHAR)pDataMessage,
 		ulBufferLength,
 		pulLenghTransferred,
-		NULL);
-	if (bResult == FALSE)
+		pOverlapppedSync);
+	if (bResult == FALSE && GetLastError() != ERROR_IO_PENDING)
 	{
-		PrintError(L"Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		return FALSE;
 	}
-	else
+
+	if (pOverlapppedSync->hEvent == NULL)
 	{
-		DebugPrint("Read OK, %d"), *pulLenghTransferred;
-		DebugPrint("String Got: %s", szBuffer);
+		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		return FALSE;
 	}
-	return bResult;
+
+	dwRetWait = WaitForSingleObject(pOverlapppedSync->hEvent, dwTimeOut);
+	if (dwRetWait == WAIT_TIMEOUT || dwRetWait == WAIT_FAILED)
+	{
+		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		return FALSE;
+	}
+
+	DebugPrint("String: %s", pDataMessage);
+
+	return TRUE;
+}
+
+BOOL FlushDevice()
+{
+	BOOL bStatus = TRUE;
+	ULONG ulDataSizeTransferred = 0;
+	OVERLAPPED OverlapppedSync = { 0 };
+	PDATA_MESSAGE pDataMessage = NULL;
+
+	pDataMessage = (PDATA_MESSAGE)ALLOC(sizeof(DATA_MESSAGE));
+	if (pDataMessage == NULL)
+	{
+		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		RET_THIS_STATUS(bStatus, FALSE);
+	}
+
+	bStatus = WinUsb_FlushPipe(g_DeviceData.hWinUSBInterfaceHandle, g_DeviceData.uBulkInPipeId);
+	if (bStatus == FALSE)
+	{
+		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		RET_THIS_STATUS(bStatus, FALSE);
+	}
+
+	OverlapppedSync.hEvent = CreateEventW(NULL, FALSE, FALSE, L"IsFlushedEvent");
+	if (OverlapppedSync.hEvent == NULL)
+	{
+		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		RET_THIS_STATUS(bStatus, FALSE);
+	}
+
+	//Check Is Pipe clean, if read true is fault
+	bStatus = ReadFromDevice((PUCHAR)pDataMessage, sizeof(DATA_MESSAGE), &ulDataSizeTransferred, &OverlapppedSync, CHECK_CLEAN_TIME);
+	if (bStatus == TRUE || ulDataSizeTransferred != 0)
+	{
+		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		RET_THIS_STATUS(bStatus, FALSE);
+	}
+RET_LABEL:
+	FREE(pDataMessage);
+	CLOSE_HANDLE(OverlapppedSync.hEvent);
+	return bStatus;
+}
+
+BOOL SetPasswordDevice(BYTE* bPasswordHashed)
+{
+	BOOL bStatus = TRUE;
+	ULONG ulDataSizeTransferred = 0;
+	OVERLAPPED OverlapppedSync = { 0 };
+	PDATA_MESSAGE pDataMessage = NULL;
+
+	pDataMessage = (PDATA_MESSAGE)ALLOC(sizeof(DATA_MESSAGE));
+	if (pDataMessage == NULL)
+	{
+		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		RET_THIS_STATUS(bStatus, FALSE);
+	}
+
+	bStatus = FlushDevice();
+	if (bStatus == FALSE)
+	{
+		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		RET_THIS_STATUS(bStatus, FALSE);
+	}
+
+	OverlapppedSync.hEvent = CreateEventW(NULL, FALSE, FALSE, L"SetPasswordEvent");
+	if (OverlapppedSync.hEvent == NULL)
+	{
+		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		RET_THIS_STATUS(bStatus, FALSE);
+	}
+
+	//Set Data Message
+	pDataMessage->iCmd = SET_PASSWORD;
+	memcpy_s(pDataMessage->szPasswordHashed, PASSWORD_SIZE, bPasswordHashed, sizeof(bPasswordHashed));
+
+	//Send Data Message
+	bStatus = WriteToDevice((PUCHAR)pDataMessage, sizeof(DATA_MESSAGE), &ulDataSizeTransferred, &OverlapppedSync, WAIT_TIME);
+	if (bStatus == FALSE || ulDataSizeTransferred == 0)
+	{
+		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		RET_THIS_STATUS(bStatus, FALSE);
+	}
+
+	//Get Data Message from Device
+	bStatus = ReadFromDevice((PUCHAR)pDataMessage, sizeof(DATA_MESSAGE), &ulDataSizeTransferred, &OverlapppedSync, WAIT_TIME);
+	if (bStatus == FALSE || ulDataSizeTransferred == 0)
+	{
+		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		RET_THIS_STATUS(bStatus, FALSE);
+	}
+
+	DebugPrint("SetPasswordDevice OK");
+RET_LABEL:
+	FREE(pDataMessage);
+	CLOSE_HANDLE(OverlapppedSync.hEvent);
+	return bStatus;
+}
+
+BOOL AuthenticateDevice(BYTE* bPasswordHashed)
+{
+	BOOL bStatus = TRUE;
+	PDATA_MESSAGE pDataMessage = NULL;
+	ULONG ulDataSizeTransferred = 0;
+	OVERLAPPED OverlapppedSync = { 0 };
+
+	pDataMessage = (PDATA_MESSAGE)ALLOC(sizeof(DATA_MESSAGE));
+	if (pDataMessage == NULL)
+	{
+		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		RET_THIS_STATUS(bStatus, FALSE);
+	}
+
+	bStatus = FlushDevice();
+	if (bStatus == FALSE)
+	{
+		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		RET_THIS_STATUS(bStatus, FALSE);
+	}
+
+	OverlapppedSync.hEvent = CreateEventW(NULL, FALSE, FALSE, L"AuthenticateEvent");
+	if (OverlapppedSync.hEvent == NULL)
+	{
+		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		RET_THIS_STATUS(bStatus, FALSE);
+	}
+
+	pDataMessage->iCmd = AUTHENTICATE; 
+	memcpy_s(pDataMessage->szPasswordHashed, PASSWORD_SIZE, bPasswordHashed, sizeof(bPasswordHashed));
+
+	//Send Data Message
+	bStatus = WriteToDevice((PUCHAR)pDataMessage, sizeof(DATA_MESSAGE), &ulDataSizeTransferred, &OverlapppedSync, WAIT_TIME);
+	if (bStatus == FALSE || ulDataSizeTransferred == 0)
+	{
+		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		RET_THIS_STATUS(bStatus, FALSE);
+	}
+
+	//Get Data Message from Device
+	bStatus = ReadFromDevice((PUCHAR)pDataMessage, sizeof(DATA_MESSAGE), &ulDataSizeTransferred, &OverlapppedSync, WAIT_TIME);
+	if (bStatus == FALSE || ulDataSizeTransferred == 0)
+	{
+		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		RET_THIS_STATUS(bStatus, FALSE);
+	}
+
+	DebugPrint("Authenticate OK");
+RET_LABEL:
+	FREE(pDataMessage);
+	CLOSE_HANDLE(OverlapppedSync.hEvent);
+	return bStatus;
+}
+
+BOOL ReadSignature()
+{
+	BOOL bStatus = TRUE;
+	PDATA_MESSAGE pDataMessage = NULL;
+	ULONG ulDataSizeTransferred = 0;
+	OVERLAPPED OverlapppedSync = { 0 };
+
+	pDataMessage = (PDATA_MESSAGE)ALLOC(sizeof(DATA_MESSAGE));
+	if (pDataMessage == NULL)
+	{
+		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		RET_THIS_STATUS(bStatus, FALSE);
+	}
+
+	bStatus = FlushDevice();
+	if (bStatus == FALSE)
+	{
+		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		RET_THIS_STATUS(bStatus, FALSE);
+	}
+
+	OverlapppedSync.hEvent = CreateEventW(NULL, FALSE, FALSE, L"ReadSignatureEvent");
+	if (OverlapppedSync.hEvent == NULL)
+	{
+		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		RET_THIS_STATUS(bStatus, FALSE);
+	}
+
+	pDataMessage->iCmd = AUTHENTICATE;
+//	memcpy_s(pDataMessage->szPasswordHashed, PASSWORD_SIZE, bPasswordHashed, sizeof(bPasswordHashed));
+
+	//Send Data Message
+	bStatus = WriteToDevice((PUCHAR)pDataMessage, sizeof(DATA_MESSAGE), &ulDataSizeTransferred, &OverlapppedSync, WAIT_TIME);
+	if (bStatus == FALSE || ulDataSizeTransferred == 0)
+	{
+		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		RET_THIS_STATUS(bStatus, FALSE);
+	}
+
+// 	do 
+// 	{
+// 	} while ();
+
+RET_LABEL:
+	FREE(pDataMessage);
+	CLOSE_HANDLE(OverlapppedSync.hEvent);
+	return bStatus;
 }

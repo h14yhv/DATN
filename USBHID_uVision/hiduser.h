@@ -24,6 +24,7 @@
 
 /* HID In/Out Endpoint Address */
 #define HID_EP_IN       0x81
+#define HID_EP_OUT			0x02
 
 /* HID Global Variables */
 extern U8   HID_Protocol;

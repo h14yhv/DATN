@@ -96,7 +96,7 @@ void DebugPrintW(__in LPCWSTR pszFormat, ...)
 		std::wstring log = szLog;
 
 		GetLocalTime(pTime);
-		swprintf_s(szLog, MAX_PATH, L"\n[%d/%02d/%02d - %02d:%02d:%02d][NetForwarderSetup] ",
+		swprintf_s(szLog, MAX_PATH, L"\n[%d/%02d/%02d - %02d:%02d:%02d][USBTokenManager] ",
 			pTime->wYear, pTime->wMonth, pTime->wDay,
 			pTime->wHour, pTime->wMinute, pTime->wSecond);
 		log = szLog + log;
@@ -110,7 +110,7 @@ void DebugPrintW(__in LPCWSTR pszFormat, ...)
 #endif
 }
 
-void DebugPrint(__in LPCSTR pszFormat, ...)
+void DebugPrint(__in LPCSTR pszFormat, ...) 
 {
 #ifdef _DEBUG_PRINT_LOG
 	PCHAR szLog = NULL;
@@ -135,7 +135,7 @@ void DebugPrint(__in LPCSTR pszFormat, ...)
 		std::string log = szLog;
 
 		GetLocalTime(pTime);
-		sprintf_s(szLog, MAX_PATH, "\n[%d/%02d/%02d - %02d:%02d:%02d][NetForwarderSetup] ",
+		sprintf_s(szLog, MAX_PATH, "\n[%d/%02d/%02d - %02d:%02d:%02d][USBTokenManager] ",
 			pTime->wYear, pTime->wMonth, pTime->wDay,
 			pTime->wHour, pTime->wMinute, pTime->wSecond);
 		log = szLog + log;
@@ -149,7 +149,7 @@ void DebugPrint(__in LPCSTR pszFormat, ...)
 #endif
 }
 
-BOOLEAN WriteLog(__in LPCWSTR pszFormat, ...)
+BOOLEAN WriteLogFile(__in LPCWSTR pszFormat, ...)
 {
 	BOOLEAN bStatus = FALSE;
 	HANDLE hFile = NULL;
@@ -163,7 +163,7 @@ BOOLEAN WriteLog(__in LPCWSTR pszFormat, ...)
 	szBuffer = (PWCHAR)ALLOC(MED_SIZE);
 	if (szBuffer == NULL)
 	{
-		DebugPrintW(L"Function %s failed 0x%X at %d in file %s", __FUNCTION__, GetLastError(), __LINE__, __FILE__);
+		DebugPrint("Function %s failed 0x%X at %d in file %s", __FUNCTION__, GetLastError(), __LINE__, __FILE__);
 		RET_THIS_STATUS(bStatus, FALSE);
 	};
 	memset(szBuffer, 0, MED_SIZE);
@@ -171,7 +171,7 @@ BOOLEAN WriteLog(__in LPCWSTR pszFormat, ...)
 	va_start(args, pszFormat);
 	if (vswprintf_s(szBufferTemp, MAX_PATH, pszFormat, args) <= 0)
 	{
-		DebugPrintW(L"Function %s failed 0x%X at %d in file %s", __FUNCTION__, GetLastError(), __LINE__, __FILE__);
+		DebugPrint("Function %s failed 0x%X at %d in file %s", __FUNCTION__, GetLastError(), __LINE__, __FILE__);
 		RET_THIS_STATUS(bStatus, FALSE);
 	}
 	va_end(args);
@@ -189,11 +189,11 @@ BOOLEAN WriteLog(__in LPCWSTR pszFormat, ...)
 		NULL);
 	if (hFile == INVALID_HANDLE_VALUE)
 	{
-		DebugPrintW(L"Function %s failed 0x%X at %d in file %s", __FUNCTION__, GetLastError(), __LINE__, __FILE__);
+		DebugPrint("Function %s failed 0x%X at %d in file %s", __FUNCTION__, GetLastError(), __LINE__, __FILE__);
 		RET_THIS_STATUS(bStatus, FALSE);
 	}
 
-	bStatus = WriteFile(
+	bStatus = (BOOLEAN)WriteFile(
 		hFile,
 		szBuffer,
 		(ULONG)wcslen(szBuffer) * sizeof(WCHAR),  // number of bytes to write
@@ -201,59 +201,55 @@ BOOLEAN WriteLog(__in LPCWSTR pszFormat, ...)
 		NULL);            // no overlapped structure
 	if (bStatus == FALSE)
 	{
-		DebugPrintW(L"Function %s failed 0x%X at %d in file %s", __FUNCTION__, GetLastError(), __LINE__, __FILE__);
+		DebugPrint("Function %s failed 0x%X at %d in file %s", __FUNCTION__, GetLastError(), __LINE__, __FILE__);
 		RET_THIS_STATUS(bStatus, FALSE);
 	}
 	else
 	{
 		if (dwBytesWritten != (ULONG)wcslen(szBuffer) * sizeof(WCHAR))
 		{
-			DebugPrintW(L"Error: dwBytesWritten != dwBytesToWrite\n");
+			DebugPrint("Error: dwBytesWritten != dwBytesToWrite\n");
 		}
-		// 		else
-		// 		{
-		// 			DebugPrintW(L"Wrote successfully.\n");
-		// 		}
 	}
 	bStatus = TRUE;
 
 RET_LABEL:
-
 	FREE(szBuffer);
 	CLOSE_HANDLE(hFile);
 	return bStatus;
 }
 
-BOOLEAN PrintError(__in LPCWSTR pszFormat, ...)
+BOOLEAN PrintError(__in LPCSTR pszFormat, ...)
 {
 	BOOLEAN bRet = FALSE;
-	PWCHAR szLog = NULL;
+	PCHAR szLog = NULL;
 	va_list args;
 	SYSTEMTIME *pTime = NULL;
 
 	if (pszFormat == NULL) return FALSE;
 
-	szLog = (PWCHAR)ALLOC(MAX_PATH * sizeof(WCHAR));
+	szLog = (PCHAR)ALLOC(MAX_PATH * sizeof(CHAR));
 	pTime = (SYSTEMTIME *)ALLOC(sizeof(SYSTEMTIME));
 	if (szLog == NULL || pTime == NULL)
 	{
 		RET_THIS_STATUS(bRet, FALSE);
 	}
-	memset(szLog, 0, MAX_PATH * sizeof(WCHAR));
+	memset(szLog, 0, MAX_PATH * sizeof(CHAR));
 	memset(pTime, 0, sizeof(SYSTEMTIME));
 
 	va_start(args, pszFormat);
-	if (vswprintf_s(szLog, MAX_PATH, pszFormat, args) > 0)
+	if (vsprintf_s(szLog, MAX_PATH, pszFormat, args) > 0)
 	{
-		std::wstring log = szLog;
-		WCHAR szError[MAX_PATH] = { 0 };
+		std::string log = szLog;
+		CHAR szError[MAX_PATH] = { 0 };
 		GetLocalTime(pTime);
-		swprintf_s(szLog, MAX_PATH, L"\n[%d/%02d/%02d - %02d:%02d:%02d][USBHIDManager] ",
+		sprintf_s(szLog, MAX_PATH, "\n[%d/%02d/%02d - %02d:%02d:%02d][USBTokenManager] ",
 			pTime->wYear, pTime->wMonth, pTime->wDay,
 			pTime->wHour, pTime->wMinute, pTime->wSecond);
 		ErrorExit(szError);
-		log = szLog + log + szError;		
-		OutputDebugStringW(log.c_str());
+		log = szLog + log + ": " +szError;	
+		printf("%s", log.c_str());
+		OutputDebugStringA(log.c_str());
 	}
 	va_end(args);
 
@@ -263,27 +259,27 @@ RET_LABEL:
 	return bRet; 
 }
 
-BOOL ErrorExit(LPWSTR lpszFunction)
+BOOL ErrorExit(LPSTR lpszFunction)
 {
 	// Retrieve the system error message for the last-error code
 
 	LPVOID lpMsgBuf;
 	DWORD dw = GetLastError();
 
-	FormatMessageW(
+	FormatMessageA(
 		FORMAT_MESSAGE_ALLOCATE_BUFFER |
 		FORMAT_MESSAGE_FROM_SYSTEM |
 		FORMAT_MESSAGE_IGNORE_INSERTS,
 		NULL,
 		dw,
 		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-		(LPWSTR)&lpMsgBuf,
+		(LPSTR)&lpMsgBuf,
 		0, NULL);
 
 	// Display the error message and exit the process
-	swprintf_s(lpszFunction, MAX_PATH, L"Error: 0x%X: %ws", dw, (LPWSTR)lpMsgBuf);
+	sprintf_s(lpszFunction, MAX_PATH, "Error: 0x%X: %s", dw, (LPSTR)lpMsgBuf);
 /*	wcscpy_s(lpszFunction, wcslen((LPWSTR)lpMsgBuf), (LPWSTR)lpMsgBuf);*/
-//	printf("%ws with error %d: %ws\n", lpszFunction, dw, (PWCHAR)lpMsgBuf);
+//	printf("Error %d: %s\n", dw, lpszFunction);
 
 	LocalFree(lpMsgBuf);
 	return TRUE;

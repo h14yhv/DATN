@@ -113,8 +113,8 @@ void USB_Error_Event (DWORD error) {
  */
 
 #if USB_CONFIGURE_EVENT
-void USB_Configure_Event (void) {
-
+void USB_Configure_Event (void) 
+{
   if (USB_Configuration) {                   /* Check if USB is configured */
     GetInReport();
     USB_WriteEP(HID_EP_IN, &InReport, sizeof(InReport));
@@ -180,9 +180,9 @@ void USB_EndPoint1 (U32 event)
   switch (event) {
     case USB_EVT_IN:
       GetInReport();
-
+			printf("In\n");
 			memset(szBuffer, 0, 64);
-			strcpy (szBuffer, "Hello from device");
+			strcpy (szBuffer, "Hello from device in");
       USB_WriteEP(HID_EP_IN, szBuffer, sizeof(szBuffer));
       break;
   }
@@ -194,10 +194,21 @@ void USB_EndPoint1 (U32 event)
  *   Called automatically on USB Endpoint 2 Event
  *    Parameter:       event
  */
-
+ 
 void USB_EndPoint2 (U32 event) 
 {
-	
+		char szBuffer[64] = {0};
+	  switch (event)
+		{
+			case USB_EVT_OUT:
+				printf("Out\n");
+				GetInReport();
+				USB_ReadEP(HID_EP_OUT, (U8 *)szBuffer);
+				printf("%s", szBuffer);
+				USB_WriteEP(HID_EP_IN, szBuffer, strlen(szBuffer));
+				break;
+		}
+
 }
 
 

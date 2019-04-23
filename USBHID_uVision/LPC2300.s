@@ -1,5 +1,5 @@
 ;/*****************************************************************************/
-;/* LPC2300.S: Startup file for Philips LPC2300 device series                 */
+;/* LPC2300.S: Startup file for Philips LPC2300/LPC2400 device series         */
 ;/*****************************************************************************/
 ;/* <<< Use Configuration Wizard in Context Menu >>>                          */
 ;/*****************************************************************************/
@@ -16,26 +16,11 @@
 ; *  translated with the following SET symbols. In uVision these SET 
 ; *  symbols are entered under Options - ASM - Define.
 ; *
-; *  NO_CLOCK_SETUP: when set the startup code will not initialize Clock 
-; *  (used mostly when clock is already initialized from script .ini 
-; *  file).
-; *
-; *  NO_EMC_SETUP: when set the startup code will not initializes External 
-; *  Memory Controller (used mostly when external memory is already initialized 
-; *  and loaded from script .ini file).
-; *
-; *  RAM_INTVEC: when set the startup code copies exception vectors 
-; *  from on-chip Flash to on-chip RAM.
-; *
 ; *  REMAP: when set the startup code initializes the register MEMMAP 
 ; *  which overwrites the settings of the CPU configuration pins. The 
 ; *  startup and interrupt vectors are remapped from:
 ; *     0x00000000  default setting (not remapped)
 ; *     0x40000000  when RAM_MODE is used
-; *     0x80000000  when EXTMEM_MODE is used
-; *
-; *  EXTMEM_MODE: when set the device is configured for code execution
-; *  from external memory starting at address 0x80000000.
 ; *
 ; *  RAM_MODE: when set the device is configured for code execution
 ; *  from on-chip RAM starting at address 0x40000000. 
@@ -55,20 +40,6 @@ Mode_SYS        EQU     0x1F
 I_Bit           EQU     0x80            ; when I bit is set, IRQ is disabled
 F_Bit           EQU     0x40            ; when F bit is set, FIQ is disabled
 
-
-;----------------------- Memory Definitions ------------------------------------
-
-; Internal Memory Base Addresses
-FLASH_BASE      EQU     0x00000000   
-RAM_BASE        EQU     0x40000000
-EXTMEM_BASE     EQU     0x80000000
-
-; External Memory Base Addresses
-STA_MEM0_BASE   EQU     0x80000000
-STA_MEM1_BASE   EQU     0x81000000
-
-
-;----------------------- Stack and Heap Definitions ----------------------------
 
 ;// <h> Stack Configuration (Stack Sizes in Bytes)
 ;//   <o0> Undefined Mode      <0x0-0xFFFFFFFF:8>
@@ -109,8 +80,7 @@ Heap_Mem        SPACE   Heap_Size
 __heap_limit
 
 
-;----------------------- System Control Block (SCB) Module Definitions ---------
-
+; System Control Block (SCB) Module Definitions
 SCB_BASE        EQU     0xE01FC000      ; SCB Base Address
 PLLCON_OFS      EQU     0x80            ; PLL Control Offset
 PLLCFG_OFS      EQU     0x84            ; PLL Configuration Offset
@@ -122,9 +92,6 @@ CLKSRCSEL_OFS   EQU     0x10C           ; Clock Source Select Reg Offset
 SCS_OFS         EQU     0x1A0           ; System Control and Status Reg Offset
 PCLKSEL0_OFS    EQU     0x1A8           ; Peripheral Clock Select Reg 0 Offset
 PCLKSEL1_OFS    EQU     0x1AC           ; Peripheral Clock Select Reg 1 Offset
-
-PCON_OFS        EQU     0x0C0           ; Power Mode Control Reg Offset
-PCONP_OFS       EQU     0x0C4           ; Power Control for Periphs Reg Offset
 
 ; Constants
 OSCRANGE        EQU     (1<<4)          ; Oscillator Range Select
@@ -322,33 +289,6 @@ PLLSTAT_PLOCK   EQU     (1<<26)         ; PLL Lock Status
 ;//                     <2=> Pclk = Cclk / 2
 ;//                     <3=> Pclk = Hclk / 8
 ;//   </h>
-;//   <h> Power Control for Peripherals Register (PCONP)
-;//     <o8.31>     PCUSB: USB interface power/clock enable
-;//     <o8.30>     PCENET: Ethernet block power/clock enable
-;//     <o8.29>     PCGPDMA: GP DMA function power/clock enable
-;//     <o8.28>     PCSDC: SD card interface power/clock enable
-;//     <o8.27>     PCI2S: I2S interface power/clock enable
-;//     <o8.26>     PCI2C2: I2C interface 2 power/clock enable
-;//     <o8.25>     PCUART3: UART 3 power/clock enable
-;//     <o8.24>     PCUART2: UART 2 power/clock enable
-;//     <o8.23>     PCTIM3: Timer 3 power/clock enable
-;//     <o8.22>     PCTIM2: Timer 2 power/clock enable
-;//     <o8.21>     PCSSP0: SSP interface 0 power/clock enable
-;//     <o8.19>     PCI2C1: I2C interface 1 power/clock enable
-;//     <o8.14>     PCAN2: CAN controller 2 power/clock enable
-;//     <o8.13>     PCAN1: CAN controller 1 power/clock enable
-;//     <o8.12>     PCAD: A/D converter power/clock enable
-;//     <o8.11>     PCEMC: External memory controller power/clock enable
-;//     <o8.10>     PCSSP1: SSP interface 1 power/clock enable
-;//     <o8.9>      PCRTC: RTC power/clock enable
-;//     <o8.8>      PCSPI: SPI interface power/clock enable
-;//     <o8.7>      PCI2C0: I2C interface 0 power/clock enable
-;//     <o8.6>      PCPWM1: PWM 1 power/clock enable
-;//     <o8.4>      PCUART1: UART 1 power/clock enable
-;//     <o8.3>      PCUART0: UART 0 power/clock enable
-;//     <o8.2>      PCTIM1: Timer/Counter 1 power/clock enable
-;//     <o8.1>      PCTIM0: Timer/Counter 0 power/clock enable
-;//   </h>
 ;// </e>
 CLOCK_SETUP     EQU     1
 SCS_Val         EQU     0x00000020
@@ -358,10 +298,9 @@ CCLKCFG_Val     EQU     0x00000005
 USBCLKCFG_Val   EQU     0x00000005
 PCLKSEL0_Val    EQU     0x00000000
 PCLKSEL1_Val    EQU     0x00000000
-PCONP_Val       EQU     0x04280FDE
 
-;----------------------- Memory Accelerator Module (MAM) Definitions -----------
 
+; Memory Accelerator Module (MAM) definitions
 MAM_BASE        EQU     0xE01FC000      ; MAM Base Address
 MAMCR_OFS       EQU     0x00            ; MAM Control Offset
 MAMTIM_OFS      EQU     0x04            ; MAM Timing Offset
@@ -381,213 +320,6 @@ MAM_SETUP       EQU     1
 MAMCR_Val       EQU     0x00000002
 MAMTIM_Val      EQU     0x00000004
 
-
-;----------------------- Pin Connect Block Definitions -------------------------
-
-PCB_BASE            EQU 0xE002C000      ; PCB Base Address
-PINSEL0_OFS         EQU 0x00            ; PINSEL0  Address Offset
-PINSEL1_OFS         EQU 0x04            ; PINSEL1  Address Offset
-PINSEL2_OFS         EQU 0x08            ; PINSEL2  Address Offset
-PINSEL3_OFS         EQU 0x0C            ; PINSEL3  Address Offset
-PINSEL4_OFS         EQU 0x10            ; PINSEL4  Address Offset
-PINSEL5_OFS         EQU 0x14            ; PINSEL5  Address Offset
-PINSEL6_OFS         EQU 0x18            ; PINSEL6  Address Offset
-PINSEL7_OFS         EQU 0x1C            ; PINSEL7  Address Offset
-PINSEL8_OFS         EQU 0x20            ; PINSEL8  Address Offset
-PINSEL9_OFS         EQU 0x24            ; PINSEL9  Address Offset
-PINSEL10_OFS        EQU 0x28            ; PINSEL10 Address Offset
-
-
-;----------------------- External Memory Controller (EMC) Definitons -----------
-
-EMC_BASE            EQU 0xFFE08000      ; EMC Base Address
-
-EMC_CTRL_OFS        EQU 0x000           ; EMCControl
-EMC_STAT_OFS        EQU 0x004           ; EMCStatus
-EMC_CONFIG_OFS      EQU 0x008           ; EMCConfig
-EMC_STA_CFG0_OFS    EQU 0x200           ; EMCStaticConfig0
-EMC_STA_WWEN0_OFS   EQU 0x204           ; EMCStaticWaitWen0
-EMC_STA_WOEN0_OFS   EQU 0x208           ; EMCStaticWaitOen0
-EMC_STA_WRD0_OFS    EQU 0x20C           ; EMCStaticWaitRd0
-EMC_STA_WPAGE0_OFS  EQU 0x210           ; EMCStaticWaitPage0
-EMC_STA_WWR0_OFS    EQU 0x214           ; EMCStaticWaitWr0
-EMC_STA_WTURN0_OFS  EQU 0x218           ; EMCStaticWaitTurn0
-EMC_STA_CFG1_OFS    EQU 0x220           ; EMCStaticConfig1
-EMC_STA_WWEN1_OFS   EQU 0x224           ; EMCStaticWaitWen1
-EMC_STA_WOEN1_OFS   EQU 0x228           ; EMCStaticWaitOen1
-EMC_STA_WRD1_OFS    EQU 0x22C           ; EMCStaticWaitRd1
-EMC_STA_WPAGE1_OFS  EQU 0x230           ; EMCStaticWaitPage1
-EMC_STA_WWR1_OFS    EQU 0x234           ; EMCStaticWaitWr1
-EMC_STA_WTURN1_OFS  EQU 0x238           ; EMCStaticWaitTurn1
-EMC_STA_EXT_W_OFS   EQU 0x080           ; EMCStaticExtendedWait
-
-BUFEN_Const         EQU (1 << 19)       ; Buffer enable bit
-EMC_PCONP_Const     EQU (1 << 11)       ; PCONP val to enable power for EMC
-
-; External Memory Pins definitions
-; pin functions for external memory interfacing
-EMC_PINSEL6_Val     EQU 0x00005555      ; D0 .. D7
-EMC_PINSEL8_Val     EQU 0x55555555      ; A0 .. A15
-EMC_PINSEL9_Val     EQU 0x50090000;     ; !OE, !WE (BLS0 because of errata), !CS0, !CS1
-
-;//     External Memory Controller Setup (EMC) ---------------------------------
-;// <e> External Memory Controller Setup (EMC)
-EMC_SETUP           EQU 0
-
-;//   <h> EMC Control Register (EMCControl)
-;//     <i> Controls operation of the memory controller
-;//     <o0.2> L: Low-power mode enable
-;//     <o0.1> M: Address mirror enable
-;//     <o0.0> E: EMC enable
-;//   </h>
-EMC_CTRL_Val        EQU 0x00000001
-
-;//   <h> EMC Configuration Register (EMCConfig)
-;//     <o0.0> Endian mode
-;//       <0=> Little-endian
-;//       <1=> Big-endian
-;//   </h>
-EMC_CONFIG_Val      EQU 0x00000000
-
-;//       Configure External Bus Behaviour for Static CS0 Area -----------------
-;//   <e> Configure External Bus Behaviour for Static CS0 Area
-EMC_STACS0_SETUP    EQU 1
-
-;//     <h> Static Memory Configuration Register (EMCStaticConfig0)
-;//       <i> Defines the configuration information for the static memory CS0
-;//       <o0.20> WP: Write protect
-;//       <o0.19> B: Write buffer enable
-;//       <o0.8> EW: Extended wait enable
-;//       <o0.6> PC: Chip select polarity
-;//         <0=> Active LOW chip select
-;//         <1=> Active HIGH chip select
-;//       <o0.3> PM: Async page mode enable
-;//       <o0.0..1> MW: Memory width
-;//         <0=> 8 bit
-;//         <1=> 16 bit
-;//         <2=> 32 bit
-;//     </h>
-EMC_STA_CFG0_Val    EQU 0x00000000
-
-;//     <h> Static Memory Write Enable Delay Register (EMCStaticWaitWen0)
-;//       <i> Selects the delay from CS0 to write enable
-;//       <o.0..3> WAITWEN: Wait write enable <1-16> <#-1>
-;//         <i> The delay is in CCLK cycles
-;//     </h>
-EMC_STA_WWEN0_Val   EQU 0x00000002
-
-;//     <h> Static Memory Output Enable Delay register (EMCStaticWaitOen0)
-;//       <i> Selects the delay from CS0 or address change, whichever is later, to output enable
-;//       <o.0..3> WAITOEN: Wait output enable <0-15>
-;//         <i> The delay is in CCLK cycles
-;//     </h>
-EMC_STA_WOEN0_Val   EQU 0x00000002
-                                      
-;//     <h> Static Memory Read Delay Register (EMCStaticWaitRd0)
-;//       <i> Selects the delay from CS0 to a read access
-;//       <o.0..4> WAITRD: Non-page mode read wait states or asynchronous page mode read first access wait states <1-32> <#-1>
-;//         <i> The delay is in CCLK cycles
-;//     </h>
-EMC_STA_WRD0_Val    EQU 0x0000001F
-
-;//     <h> Static Memory Page Mode Read Delay Register (EMCStaticWaitPage0)
-;//       <i> Selects the delay for asynchronous page mode sequential accesses for CS0
-;//       <o.0..4> WAITPAGE: Asynchronous page mode read after the first read wait states <1-32> <#-1>
-;//         <i> The delay is in CCLK cycles
-;//     </h>
-EMC_STA_WPAGE0_Val  EQU 0x0000001F
-
-;//     <h> Static Memory Write Delay Register (EMCStaticWaitWr0)
-;//       <i> Selects the delay from CS0 to a write access
-;//       <o.0..4> WAITWR: Write wait states <2-33> <#-2>
-;//         <i> The delay is in CCLK cycles
-;//     </h>
-EMC_STA_WWR0_Val    EQU 0x0000001F
-
-;//     <h> Static Memory Turn Round Delay Register (EMCStaticWaitTurn0)
-;//       <i> Selects the number of bus turnaround cycles for CS0
-;//       <o.0..4> WAITTURN: Bus turnaround cycles <1-16> <#-1>
-;//         <i> The delay is in CCLK cycles
-;//     </h>
-EMC_STA_WTURN0_Val  EQU 0x0000000F
-
-;//   </e> End of Static Setup for Static CS0 Area
-
-;//       Configure External Bus Behaviour for Static CS1 Area -----------------
-;//   <e> Configure External Bus Behaviour for Static CS1 Area
-EMC_STACS1_SETUP    EQU 0
-
-;//     <h> Static Memory Configuration Register (EMCStaticConfig1)
-;//       <i> Defines the configuration information for the static memory CS1
-;//       <o0.20> WP: Write protect
-;//       <o0.19> B: Write buffer enable
-;//       <o0.8> EW: Extended wait enable
-;//       <o0.6> PC: Chip select polarity
-;//         <0=> Active LOW chip select
-;//         <1=> Active HIGH chip select
-;//       <o0.3> PM: Async page mode enable
-;//       <o0.0..1> MW: Memory width
-;//         <0=> 8 bit
-;//         <1=> 16 bit
-;//         <2=> 32 bit
-;//     </h>
-EMC_STA_CFG1_Val    EQU 0x00000000
-
-;//     <h> Static Memory Write Enable Delay Register (EMCStaticWaitWen1)
-;//       <i> Selects the delay from CS1 to write enable
-;//       <o.0..3> WAITWEN: Wait write enable <1-16> <#-1>
-;//         <i> The delay is in CCLK cycles
-;//     </h>
-EMC_STA_WWEN1_Val   EQU 0x00000000
-
-;//     <h> Static Memory Output Enable Delay register (EMCStaticWaitOen1)
-;//       <i> Selects the delay from CS1 or address change, whichever is later, to output enable
-;//       <o.0..3> WAITOEN: Wait output enable <0-15>
-;//         <i> The delay is in CCLK cycles
-;//     </h>
-EMC_STA_WOEN1_Val   EQU 0x00000000
-                                      
-;//     <h> Static Memory Read Delay Register (EMCStaticWaitRd1)
-;//       <i> Selects the delay from CS1 to a read access
-;//       <o.0..4> WAITRD: Non-page mode read wait states or asynchronous page mode read first access wait states <1-32> <#-1>
-;//         <i> The delay is in CCLK cycles
-;//     </h>
-EMC_STA_WRD1_Val    EQU 0x0000001F
-
-;//     <h> Static Memory Page Mode Read Delay Register (EMCStaticWaitPage0)
-;//       <i> Selects the delay for asynchronous page mode sequential accesses for CS1
-;//       <o.0..4> WAITPAGE: Asynchronous page mode read after the first read wait states <1-32> <#-1>
-;//         <i> The delay is in CCLK cycles
-;//     </h>
-EMC_STA_WPAGE1_Val  EQU 0x0000001F
-
-;//     <h> Static Memory Write Delay Register (EMCStaticWaitWr1)
-;//       <i> Selects the delay from CS1 to a write access
-;//       <o.0..4> WAITWR: Write wait states <2-33> <#-2>
-;//         <i> The delay is in CCLK cycles
-;//     </h>
-EMC_STA_WWR1_Val    EQU  0x0000001F
-
-;//     <h> Static Memory Turn Round Delay Register (EMCStaticWaitTurn1)
-;//       <i> Selects the number of bus turnaround cycles for CS1
-;//       <o.0..4> WAITTURN: Bus turnaround cycles <1-16> <#-1>
-;//         <i> The delay is in CCLK cycles
-;//     </h>
-EMC_STA_WTURN1_Val  EQU 0x0000000F
-
-;//   </e> End of Static Setup for Static CS1 Area
-
-;//   <h> Static Memory Extended Wait Register (EMCStaticExtendedWait)
-;//     <i> Time long static memory read and write transfers
-;//     <o.0..9> EXTENDEDWAIT: Extended wait time out <1-64><#-1>
-;//       <i> The delay is in (16 * CCLK) cycles
-;//   </h>
-EMC_STA_EXT_W_Val   EQU 0x00000000
-
-;// </e> End of EMC Setup
-
-
-                PRESERVE8
 
 ; Area Definition and Entry Point
 ;  Startup Code must be linked first at Address at which it expects to run.
@@ -634,10 +366,8 @@ FIQ_Handler     B       FIQ_Handler
 Reset_Handler   
 
 
-
-; Clock Setup ------------------------------------------------------------------
-
-                IF      (:LNOT:(:DEF:NO_CLOCK_SETUP)):LAND:(CLOCK_SETUP != 0)
+; Setup Clock
+                IF      CLOCK_SETUP != 0
                 LDR     R0, =SCB_BASE
                 MOV     R1, #0xAA
                 MOV     R2, #0x55
@@ -663,17 +393,10 @@ OSC_Loop        LDR     R3, [R0, #SCS_OFS]    ; Wait for main osc stabilize
                 STR     R1, [R0, #PLLFEED_OFS]
                 STR     R2, [R0, #PLLFEED_OFS]
 
-                IF      (CLKSRCSEL_Val:AND:3) != 2
-;  Wait until PLL Locked (if source is not RTC oscillator)
+;  Wait until PLL Locked
 PLL_Loop        LDR     R3, [R0, #PLLSTAT_OFS]
                 ANDS    R3, R3, #PLLSTAT_PLOCK
                 BEQ     PLL_Loop
-                ELSE
-;  Wait at least 200 cycles (if source is RTC oscillator)
-                MOV     R3, #(200/4)
-PLL_Loop        SUBS    R3, R3, #1
-                BNE     PLL_Loop
-                ENDIF
 
 M_N_Lock        LDR     R3, [R0, #PLLSTAT_OFS]
                 LDR     R4, =(PLLSTAT_M:OR:PLLSTAT_N)
@@ -701,14 +424,10 @@ M_N_Lock        LDR     R3, [R0, #PLLSTAT_OFS]
                 STR     R3, [R0, #PLLCON_OFS]
                 STR     R1, [R0, #PLLFEED_OFS]
                 STR     R2, [R0, #PLLFEED_OFS]
-
-                LDR     R4, =PCONP_Val        ; Enable Peripheral Clocks
-                STR     R4, [R0, #PCONP_OFS]
                 ENDIF   ; CLOCK_SETUP
 
 
-; Setup Memory Accelerator Module ----------------------------------------------
-
+; Setup MAM
                 IF      MAM_SETUP != 0
                 LDR     R0, =MAM_BASE
                 MOV     R1, #MAMTIM_Val
@@ -718,100 +437,11 @@ M_N_Lock        LDR     R3, [R0, #PLLSTAT_OFS]
                 ENDIF   ; MAM_SETUP
 
 
-; Setup External Memory Controller ---------------------------------------------
-
-                IF      (:DEF:NO_EMC_SETUP):LOR:(EMC_SETUP != 0)
-                LDR     R0, =EMC_BASE
-                LDR     R1, =SCB_BASE
-                LDR     R2, =PCB_BASE
-
-                LDR     R4, [R1, #PCONP_OFS]
-                ORR     R4, R4, #EMC_PCONP_Const  ; Enable EMC clock
-                STR     R4, [R1, #PCONP_OFS]
-
-                LDR     R4, =EMC_CTRL_Val
-                STR     R4, [R0, #EMC_CTRL_OFS]
-                LDR     R4, =EMC_CONFIG_Val
-                STR     R4, [R0, #EMC_CONFIG_OFS]
-
-;  Setup pin functions for External Bus functionality
-                LDR     R4, =EMC_PINSEL6_Val
-                STR     R4, [R2, #PINSEL6_OFS]
-                LDR     R4, =EMC_PINSEL8_Val
-                STR     R4, [R2, #PINSEL8_OFS]
-                LDR     R4, =EMC_PINSEL9_Val
-                STR     R4, [R2, #PINSEL9_OFS]
-
-                LDR     R6, =1200000              ; Number of cycles to delay
-Wait_0          SUBS    R6, R6, #1                ; Delay ~100 ms @ proc clk 48 MHz
-                BNE     Wait_0
-
-                IF      (EMC_STACS0_SETUP != 0)
-                LDR     R4, =EMC_STA_CFG0_Val
-                STR     R4, [R0, #EMC_STA_CFG0_OFS]
-                LDR     R4, =EMC_STA_WWEN0_Val
-                STR     R4, [R0, #EMC_STA_WWEN0_OFS]
-                LDR     R4, =EMC_STA_WOEN0_Val
-                STR     R4, [R0, #EMC_STA_WOEN0_OFS]
-                LDR     R4, =EMC_STA_WRD0_Val
-                STR     R4, [R0, #EMC_STA_WRD0_OFS]
-                LDR     R4, =EMC_STA_WPAGE0_Val
-                STR     R4, [R0, #EMC_STA_WPAGE0_OFS]
-                LDR     R4, =EMC_STA_WWR0_Val
-                STR     R4, [R0, #EMC_STA_WWR0_OFS]
-                LDR     R4, =EMC_STA_WTURN0_Val
-                STR     R4, [R0, #EMC_STA_WTURN0_OFS]
-                ENDIF
-
-                IF      (EMC_STACS1_SETUP != 0)
-                LDR     R4, =EMC_STA_CFG1_Val
-                STR     R4, [R0, #EMC_STA_CFG1_OFS]
-                LDR     R4, =EMC_STA_WWEN1_Val
-                STR     R4, [R0, #EMC_STA_WWEN1_OFS]
-                LDR     R4, =EMC_STA_WOEN1_Val
-                STR     R4, [R0, #EMC_STA_WOEN1_OFS]
-                LDR     R4, =EMC_STA_WRD1_Val
-                STR     R4, [R0, #EMC_STA_WRD1_OFS]
-                LDR     R4, =EMC_STA_WPAGE1_Val
-                STR     R4, [R0, #EMC_STA_WPAGE1_OFS]
-                LDR     R4, =EMC_STA_WWR1_Val
-                STR     R4, [R0, #EMC_STA_WWR1_OFS]
-                LDR     R4, =EMC_STA_WTURN1_Val
-                STR     R4, [R0, #EMC_STA_WTURN1_OFS]
-                ENDIF
-
-                LDR     R6, =120000               ; Number of cycles to delay
-Wait_1          SUBS    R6, R6, #1                ; Delay ~10 ms @ proc clk 48 MHz
-                BNE     Wait_1
-
-                LDR     R4, =EMC_STA_EXT_W_Val
-                LDR     R5, =EMC_STA_EXT_W_OFS
-                ADD     R5, R5, R0
-                STR     R4, [R5, #0]
-
-                ENDIF   ; EMC_SETUP
-
-
-; Copy Exception Vectors to Internal RAM ---------------------------------------
-
-                IF      :DEF:RAM_INTVEC
-                ADR     R8, Vectors         ; Source
-                LDR     R9, =RAM_BASE       ; Destination
-                LDMIA   R8!, {R0-R7}        ; Load Vectors 
-                STMIA   R9!, {R0-R7}        ; Store Vectors 
-                LDMIA   R8!, {R0-R7}        ; Load Handler Addresses 
-                STMIA   R9!, {R0-R7}        ; Store Handler Addresses
-                ENDIF
-
-
-; Memory Mapping (when Interrupt Vectors are in RAM) ---------------------------
-
-MEMMAP          EQU     0xE01FC040          ; Memory Mapping Control
+; Memory Mapping (when Interrupt Vectors are in RAM)
+MEMMAP          EQU     0xE01FC040      ; Memory Mapping Control
                 IF      :DEF:REMAP
                 LDR     R0, =MEMMAP
-                IF      :DEF:EXTMEM_MODE
-                MOV     R1, #3
-                ELIF    :DEF:RAM_MODE
+                IF      :DEF:RAM_MODE
                 MOV     R1, #2
                 ELSE
                 MOV     R1, #1
@@ -820,7 +450,11 @@ MEMMAP          EQU     0xE01FC040          ; Memory Mapping Control
                 ENDIF
 
 
-; Setup Stack for each mode ----------------------------------------------------
+; Initialise Interrupt System
+;  ...
+
+
+; Setup Stack for each mode
 
                 LDR     R0, =Stack_Top
 
@@ -863,7 +497,7 @@ MEMMAP          EQU     0xE01FC040          ; Memory Mapping Control
                 ENDIF
 
 
-; Enter the C code -------------------------------------------------------------
+; Enter the C code
 
                 IMPORT  __main
                 LDR     R0, =__main
