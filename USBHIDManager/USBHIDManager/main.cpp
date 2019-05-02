@@ -29,7 +29,7 @@ LONG __cdecl _tmain(
 		return FALSE;
 	}
 
-	DebugPrint("Size of CMD: %d", sizeof(CMD));
+	DebugPrint("Size of CMD: %d", sizeof(char));
 
     UNREFERENCED_PARAMETER(Argc);
     UNREFERENCED_PARAMETER(Argv);
@@ -73,10 +73,14 @@ LONG __cdecl _tmain(
 
 	GetConfigDevice();
 
+	strcpy_s(szBuffer, MAX_PATH, "ETOKENV200");
+
+	AuthenticateDevice("UserName",szBuffer);
+
  
-// 	WriteToDevice(NULL, (ULONG)strlen(szBuffer), &ulBytesTransferred, TODO);
-	
-	ReadFromDevice(NULL, (ULONG)strlen(szBuffer), &ulBytesTransferred, &OverlapppedSync, WAIT_TIME);
+//  	WriteToDevice((PUCHAR)szBuffer, (ULONG)strlen(szBuffer), &ulBytesTransferred, &OverlapppedSync, WAIT_TIME);
+// 	
+// 	ReadFromDevice((PUCHAR)szBuffer, (ULONG)strlen(szBuffer), &ulBytesTransferred, &OverlapppedSync, WAIT_TIME);
 
     CloseDevice(&g_DeviceData);
 

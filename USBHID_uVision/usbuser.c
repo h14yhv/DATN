@@ -25,6 +25,8 @@
 
 #include "hiduser.h"
 #include "demo.h"
+#include <stdio.h>
+#include <string.h>
 
 
 /*
@@ -174,18 +176,24 @@ void (* const USB_P_EP[16]) (U32 event) = {
  *    Parameter:       event
  */
 
+int volatile iTemp ; 
 void USB_EndPoint1 (U32 event) 
 {
-	char szBuffer[64];
+	WReady = 1;
+	
+/*	char szBuffer[64];
   switch (event) {
     case USB_EVT_IN:
       GetInReport();
-			printf("In\n");
+			printf("\nIn");
 			memset(szBuffer, 0, 64);
 			strcpy (szBuffer, "Hello from device in");
-      USB_WriteEP(HID_EP_IN, szBuffer, sizeof(szBuffer));
+      USB_WriteEP(HID_EP_IN,(U8 *) szBuffer, sizeof(szBuffer));			
+			printf("\n%d", iTemp);
+			iTemp++; 
       break;
   }
+*/
 }
 
 
@@ -197,18 +205,36 @@ void USB_EndPoint1 (U32 event)
  
 void USB_EndPoint2 (U32 event) 
 {
-		char szBuffer[64] = {0};
+  	if (RReady==0)
+	{
+		int iRead;
+		iRead = USB_ReadEP(0x02,(BYTE*)&aPacket);
+		RReady = 1;
+		printf("USB: Received %d bytes\r\n",iRead);
+		/*
+		for (iRead = 0;iRead<64;iRead++)
+			printf("%.2X ",((BYTE*)(&aPacket))[iRead]);
+		*/	
+	}
+	else
+	{
+		printf("USB: Device is too busy\r\n");
+		USB_SetStallEP(0x02);
+	}
+/*		char szBuffer[64] = {0};
 	  switch (event)
 		{
 			case USB_EVT_OUT:
-				printf("Out\n");
+				printf("\nOut");
 				GetInReport();
 				USB_ReadEP(HID_EP_OUT, (U8 *)szBuffer);
 				printf("%s", szBuffer);
-				USB_WriteEP(HID_EP_IN, szBuffer, strlen(szBuffer));
+				USB_WriteEP(HID_EP_IN, (U8 *)szBuffer, strlen(szBuffer));
+				printf("\n%d", iTemp);
+				iTemp++; 
 				break;
 		}
-
+*/
 }
 
 

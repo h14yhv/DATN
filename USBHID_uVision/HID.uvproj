@@ -432,9 +432,59 @@
           <GroupName>Source Files</GroupName>
           <Files>
             <File>
+              <FileName>demo.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\demo.c</FilePath>
+            </File>
+            <File>
+              <FileName>LCD_4bit.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\LCD_4bit.c</FilePath>
+            </File>
+            <File>
+              <FileName>Token.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Token.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Documentation</GroupName>
+          <Files>
+            <File>
+              <FileName>Abstract.txt</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Abstract.txt</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>UART</GroupName>
+          <Files>
+            <File>
+              <FileName>Serial.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Serial.c</FilePath>
+            </File>
+            <File>
+              <FileName>Retarget.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Retarget.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>USB</GroupName>
+          <Files>
+            <File>
               <FileName>usbcfg.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\usbcfg.h</FilePath>
+            </File>
+            <File>
+              <FileName>hiduser.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\hiduser.c</FilePath>
             </File>
             <File>
               <FileName>usbcore.c</FileName>
@@ -447,54 +497,14 @@
               <FilePath>.\usbdesc.c</FilePath>
             </File>
             <File>
-              <FileName>usbhw.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\usbhw.c</FilePath>
-            </File>
-            <File>
               <FileName>usbuser.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\usbuser.c</FilePath>
             </File>
             <File>
-              <FileName>hiduser.c</FileName>
+              <FileName>usbhw.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\hiduser.c</FilePath>
-            </File>
-            <File>
-              <FileName>demo.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\demo.c</FilePath>
-            </File>
-            <File>
-              <FileName>LCD_4bit.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\LCD_4bit.c</FilePath>
-            </File>
-            <File>
-              <FileName>Serial.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Serial.c</FilePath>
-            </File>
-            <File>
-              <FileName>Retarget.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Retarget.c</FilePath>
-            </File>
-            <File>
-              <FileName>IRQ.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\IRQ.c</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>Documentation</GroupName>
-          <Files>
-            <File>
-              <FileName>Abstract.txt</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Abstract.txt</FilePath>
+              <FilePath>.\usbhw.c</FilePath>
             </File>
           </Files>
         </Group>

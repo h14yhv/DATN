@@ -18,12 +18,16 @@ DEFINE_GUID(ClassGUID, 0x88bae032, 0x5a81, 0x49f0, 0xbc, 0x3d, 0xa4, 0xff, 0x13,
 #define WAIT_TIME 1000
 #define CHECK_CLEAN_TIME 200
 
+
+#define  MAX_NUMBER_SIGNATURES		31
+#define  MAX_PACKET_SIZE		  	58
+
 typedef struct _DEVICE_DATA {
 
-    BOOL                    bIsHandlesOpen;
-    WINUSB_INTERFACE_HANDLE hWinUSBInterfaceHandle;
-    HANDLE                  hFileDeviceHandle;
-    TCHAR                   DevicePath[MAX_PATH];
+	BOOL                    bIsHandlesOpen;
+	WINUSB_INTERFACE_HANDLE hWinUSBInterfaceHandle;
+	HANDLE                  hFileDeviceHandle;
+	TCHAR                   DevicePath[MAX_PATH];
 	UCHAR					uBulkInPipeId;
 	UCHAR					uBulkOutPipeId;
 	UCHAR					uInterruptPipeId;
@@ -32,49 +36,27 @@ typedef struct _DEVICE_DATA {
 typedef enum _CMD
 {
 	SET_PASSWORD = 1,
-	READ_REQUEST ,
+	READ_REQUEST,
 	WRITE_REQUEST,
 	GET_INFO,
 	AUTHENTICATE,
-	USB_CMD_ACK
+	//	USB_CMD_ACK
 }CMD, *PCMD;
 
-#define PASSWORD_SIZE 128
-
-typedef struct _DATA_MESSAGE {
-	CMD iCmd; 
-	BYTE szPasswordHashed[PASSWORD_SIZE];
-} DATA_MESSAGE, *PDATA_MESSAGE;
-
-HRESULT
-OpenDevice(
-    _Out_     PDEVICE_DATA DeviceData,
-    _Out_opt_ PBOOL        FailureDeviceNotFound
-    );
-
-VOID
-CloseDevice(
-    _Inout_ PDEVICE_DATA DeviceData
-    );
-
-BOOL GetConfigDevice();
-
-BOOL ReadFromDevice(PUCHAR pDataMessage, ULONG ulBufferLength, PULONG pulLenghTransferred, LPOVERLAPPED pOverlapppedSync, DWORD dwTimeOut);
-
-BOOL WriteToDevice(PUCHAR pDataMessage, ULONG ulBufferLength, PULONG pulLenghTransferred, LPOVERLAPPED pOverlapppedSync, DWORD dwTimeOut);
-
-HRESULT
-RetrieveDevicePath(
-	_Out_bytecap_(BufLen) LPTSTR DevicePath,
-	_In_                  ULONG  BufLen,
-	_Out_opt_             PBOOL  FailureDeviceNotFound
-);
-
-BOOL FlushDevice();
+enum USB_CMD
+{
+	USB_CMD_READ = 0x01,
+	USB_CMD_WRITE,
+	USB_CMD_INFO,
+	USB_CMD_AUTHENTICATE,
+	USB_CMD_ADD,
+	USB_CMD_SETPASSWORD,
+	USB_CMD_ACK
+};
 
 
-#define  MAX_NUMBER_SIGNATURES		31
-#define  MAX_PACKET_SIZE		  	58
+#define PASSWORD_SIZE 31
+#define USERNAME_SIZE 31
 
 typedef struct _DATA_PACKET
 {
@@ -84,14 +66,14 @@ typedef struct _DATA_PACKET
 	USHORT iOffset;//Length and offset of data	
 	BYTE   SignData[MAX_PACKET_SIZE];
 } DATA_PACKET;
+
 typedef struct _AUTHENTICATE_PACKET   //??? need more consideration
 {
 	BYTE	bReserved;
 	BYTE	Username[31];
 	BYTE	Password[31];
-
-
 } AUTHENTICATE_PACKET;
+
 typedef struct _INFO_PACKET
 {
 	//Number of signature stored in device
@@ -111,3 +93,45 @@ typedef struct _USBPKI_PACKET
 	BYTE aData[63];
 
 } USBPKI_PACKET;
+
+typedef struct _DATA_MESSAGE {
+	BYTE iCmd;
+	/*	BYTE szPasswordHashed[PASSWORD_SIZE];*/
+	union
+	{
+		AUTHENTICATE_PACKET AuthenticatePacket;
+	} Data;
+
+} DATA_MESSAGE, *PDATA_MESSAGE;
+
+
+/**********************************************
+Function Prototype
+**********************************************/
+HRESULT
+OpenDevice(
+	_Out_     PDEVICE_DATA DeviceData,
+	_Out_opt_ PBOOL        FailureDeviceNotFound
+);
+
+VOID
+CloseDevice(
+	_Inout_ PDEVICE_DATA DeviceData
+);
+
+BOOL GetConfigDevice();
+
+BOOL ReadFromDevice(PUCHAR pDataMessage, ULONG ulBufferLength, PULONG pulLenghTransferred, LPOVERLAPPED pOverlapppedSync, DWORD dwTimeOut);
+
+BOOL WriteToDevice(PUCHAR pDataMessage, ULONG ulBufferLength, PULONG pulLenghTransferred, LPOVERLAPPED pOverlapppedSync, DWORD dwTimeOut);
+
+BOOL AuthenticateDevice(PCHAR szUserName, PCHAR szPasswordHashed);
+
+HRESULT
+RetrieveDevicePath(
+	_Out_bytecap_(BufLen) LPTSTR DevicePath,
+	_In_                  ULONG  BufLen,
+	_Out_opt_             PBOOL  FailureDeviceNotFound
+);
+
+BOOL FlushDevice();

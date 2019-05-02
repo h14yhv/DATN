@@ -185,8 +185,8 @@ Return value:
 		return hr;
 	}
 
-	do
-	{
+// 	do
+// 	{
 		//
 		// Get the size of the path string
 		// We expect to get a failure with insufficient buffer
@@ -247,7 +247,7 @@ Return value:
 			BufLen,
 			detailData->DevicePath);
 		DebugPrint("Device Path: %s", DevicePath);
-	} while (SetupDiEnumDeviceInterfaces(deviceInfo, NULL, &GUID_DEVINTERFACE_USBHIDManager, iDeviceNumber, &interfaceData));
+/*	} while (SetupDiEnumDeviceInterfaces(deviceInfo, NULL, &GUID_DEVINTERFACE_USBHIDManager, iDeviceNumber, &interfaceData));*/
 
 
 	LocalFree(detailData);
@@ -344,6 +344,13 @@ BOOL WriteToDevice(PUCHAR pDataMessage, ULONG ulBufferLength, PULONG pulLenghTra
 		return FALSE;
 	}
 
+	bResult = WinUsb_GetOverlappedResult(g_DeviceData.hWinUSBInterfaceHandle, pOverlapppedSync, pulLenghTransferred, FALSE);
+	if (bResult == FALSE)
+	{
+		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		return FALSE;
+	}
+
 	return TRUE;
 }
 
@@ -377,7 +384,12 @@ BOOL ReadFromDevice(PUCHAR pDataMessage, ULONG ulBufferLength, PULONG pulLenghTr
 		return FALSE;
 	}
 
-	DebugPrint("String: %s", pDataMessage);
+	bResult = WinUsb_GetOverlappedResult(g_DeviceData.hWinUSBInterfaceHandle, pOverlapppedSync, pulLenghTransferred, FALSE);
+	if (bResult == FALSE)
+	{
+		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		return FALSE;
+	}
 
 	return TRUE;
 }
@@ -417,6 +429,7 @@ BOOL FlushDevice()
 		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
 		RET_THIS_STATUS(bStatus, FALSE);
 	}
+	bStatus = TRUE;
 RET_LABEL:
 	FREE(pDataMessage);
 	CLOSE_HANDLE(OverlapppedSync.hEvent);
@@ -453,7 +466,7 @@ BOOL SetPasswordDevice(BYTE* bPasswordHashed)
 
 	//Set Data Message
 	pDataMessage->iCmd = SET_PASSWORD;
-	memcpy_s(pDataMessage->szPasswordHashed, PASSWORD_SIZE, bPasswordHashed, sizeof(bPasswordHashed));
+/*	memcpy_s(pDataMessage->, PASSWORD_SIZE, bPasswordHashed, sizeof(bPasswordHashed));*/
 
 	//Send Data Message
 	bStatus = WriteToDevice((PUCHAR)pDataMessage, sizeof(DATA_MESSAGE), &ulDataSizeTransferred, &OverlapppedSync, WAIT_TIME);
@@ -478,7 +491,7 @@ RET_LABEL:
 	return bStatus;
 }
 
-BOOL AuthenticateDevice(BYTE* bPasswordHashed)
+BOOL AuthenticateDevice(PCHAR szUserName, PCHAR szPasswordHashed)
 {
 	BOOL bStatus = TRUE;
 	PDATA_MESSAGE pDataMessage = NULL;
@@ -491,6 +504,7 @@ BOOL AuthenticateDevice(BYTE* bPasswordHashed)
 		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
 		RET_THIS_STATUS(bStatus, FALSE);
 	}
+	memset(pDataMessage, 0, sizeof(DATA_MESSAGE));
 
 	bStatus = FlushDevice();
 	if (bStatus == FALSE)
@@ -506,8 +520,10 @@ BOOL AuthenticateDevice(BYTE* bPasswordHashed)
 		RET_THIS_STATUS(bStatus, FALSE);
 	}
 
-	pDataMessage->iCmd = AUTHENTICATE; 
-	memcpy_s(pDataMessage->szPasswordHashed, PASSWORD_SIZE, bPasswordHashed, sizeof(bPasswordHashed));
+	pDataMessage->iCmd = USB_CMD_AUTHENTICATE;
+	strcpy_s((PCHAR)pDataMessage->Data.AuthenticatePacket.Password, PASSWORD_SIZE, (PCHAR)szPasswordHashed);
+	strcpy_s((PCHAR)pDataMessage->Data.AuthenticatePacket.Username, USERNAME_SIZE, szUserName);
+	//memcpy_s(pDataMessage->Data.AuthenticatePacket.Password, PASSWORD_SIZE, bPasswordHashed, sizeof(bPasswordHashed));
 
 	//Send Data Message
 	bStatus = WriteToDevice((PUCHAR)pDataMessage, sizeof(DATA_MESSAGE), &ulDataSizeTransferred, &OverlapppedSync, WAIT_TIME);
@@ -525,6 +541,11 @@ BOOL AuthenticateDevice(BYTE* bPasswordHashed)
 		RET_THIS_STATUS(bStatus, FALSE);
 	}
 
+	if (pDataMessage->iCmd != USB_CMD_ACK)
+	{
+		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		RET_THIS_STATUS(bStatus, FALSE);
+	}
 	DebugPrint("Authenticate OK");
 RET_LABEL:
 	FREE(pDataMessage);

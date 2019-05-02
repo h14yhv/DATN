@@ -13,157 +13,154 @@
  * Copyright (c) 2008 Keil - An ARM Company. All rights reserved.
  *----------------------------------------------------------------------------*/
 
-#include <LPC23xx.H>                        /* LPC23xx/LPC24xx definitions */
-#include <stdio.h>
-#include "type.h"
-#include "usb.h"
-#include "usbcfg.h"
-#include "usbhw.h"
+#include <LPC23xx.H> /* LPC23xx/LPC24xx definitions */
 
 #include "demo.h"
 #include "LCD.h"
 
-extern void init_serial (void);
-extern int sendchar (int ch);
-	
-U8 InReport;                                /* HID Input Report    */
-                                            /*   Bit0   : Buttons  */
-                                            /*   Bit1..7: Reserved */
+#define DEBUG
 
-U8 OutReport;                               /* HID Out Report      */
-                                            /*   Bit0..7: LEDs     */
-																						
-/* Graphic LCD function prototypes    */
+extern void init_serial(void);
+extern int sendchar(int ch);
 
-/* Function for displaying bargraph on the LCD display                        */
-void Disp_Bargraph(int pos_x, int pos_y, int value) {
-  int i;
+U8 InReport; /* HID Input Report    */
+/*   Bit0   : Buttons  */
+/*   Bit1..7: Reserved */
 
-  set_cursor (pos_x, pos_y);
-  for (i = 0; i < 16; i++)  {
-    if (value > 5)  {
-      lcd_putchar (0x05);
-      value -= 5;
-    }  else  {
-      lcd_putchar (value);
-      value = 0;
-    }
-  }
-}
+U8 OutReport; /* HID Out Report      */
+			  /*   Bit0..7: LEDs     */
 
+/***************************************************
+Global Variables
+***************************************************/
 
-/* Function that initializes LEDs                                             */
-void LED_Init(void) {
-  PINSEL10 = 0;                         /* Disable ETM interface, enable LEDs */
-  FIO2DIR  = 0x000000FF;                /* P2.0..7 defined as Outputs         */
-  FIO2MASK = 0x00000000;
-}
+BYTE iState = 0; // 0 : Unauthenticated
+				 // 1 : Authenticated and expecting reading biosign 1st
+				 // 2 : Authenticated and expecting reading biosign 2nd
+				 // 3 : ...
 
-/* Function that turns on requested LED                                       */
-void LED_On (unsigned int num) {
-  FIO2SET = (1 << num);
-}
+extern BYTE *pPassword, *pBioSign, *pKeyChain;
 
-/* Function that turns off requested LED                                      */
-void LED_Off (unsigned int num) {
-  FIO2CLR = (1 << num);
-}
+extern BYTE volatile WReady;
+extern BYTE volatile RReady;
 
+extern BIO_SIGNATURE BioSign; // Temperary biosignature buffer
+extern INFO_PACKET aInfoPacket;
+extern DATA_PACKET aDataPacket;
+extern AUTHENTICATE_PACKET aAuthenticatePacket;
+extern USBPKI_PACKET aPacket;
 
-/* Import external variables from IRQ.c file                                  */
-extern short AD_last;
-extern unsigned char clock_1s;
+extern BYTE g_Password[PASSWORD_SIZE];
 
+extern EEPROM_HEADER RomHeader;
+extern EEPROM_BLOCK Block;
+extern DWORD iHeaderBase;
+extern USHORT iHeaderBlock;
+
+extern USHORT iOffset, iPinChecksum;
+
+extern BYTE iRetries;
 
 /*------------------------------------------------------------------------------
   Get HID Input Report -> InReport
  *------------------------------------------------------------------------------*/
-void GetInReport (void) {
+void GetInReport(void)
+{
 
-  if ((FIO2PIN & PB_INT0) == 0) {           /* Check if PBINT is pressed */
-    InReport = 0x01;
-  } else {
-    InReport = 0x00;
-  }
+	if ((FIO2PIN & PB_INT0) == 0)
+	{ /* Check if PBINT is pressed */
+		InReport = 0x01;
+	}
+	else
+	{
+		InReport = 0x00;
+	}
 }
-
 
 /*------------------------------------------------------------------------------
   Set HID Output Report <- OutReport
  *------------------------------------------------------------------------------*/
-void SetOutReport (void) {
+void SetOutReport(void)
+{
 
-  FIO2CLR = LED_MSK;
-  FIO2SET = OutReport;	
+	FIO2CLR = LED_MSK;
+	FIO2SET = OutReport;
 }
-
-/* Import external IRQ handlers from IRQ.c file                               */
-extern __irq void T0_IRQHandler  (void);
-extern __irq void ADC_IRQHandler (void);
 
 /* Main Program */
-int main (void) 
+int main(void)
 {
-	short AD_old, AD_value, AD_print;
-  PINSEL10 = 0;                             /* Disable ETM interface */
-  FIO2DIR |= LED_MSK;                       /* LEDs, port 2, bit 0~7 output only */
-	
-	LED_Init();    
-	
-	  /* Enable and setup timer interrupt, start timer                            */
-  T0MR0         = 11999;                       /* 1msec = 12000-1 at 12.0 MHz */
-  T0MCR         = 3;                           /* Interrupt and Reset on MR0  */
-  T0TCR         = 1;                           /* Timer0 Enable               */
-  VICVectAddr4  = (unsigned long)T0_IRQHandler;/* Set Interrupt Vector        */
-  VICVectCntl4  = 15;                          /* use it for Timer0 Interrupt */
-  VICIntEnable  = (1  << 4);                   /* Enable Timer0 Interrupt     */
-	
-	  /* Power enable, Setup pin, enable and setup AD converter interrupt         */
-  PCONP        |= (1 << 12);                   /* Enable power to AD block    */
-  PINSEL1       = 0x4000;                      /* AD0.0 pin function select   */
-  AD0INTEN      = (1 <<  0);                   /* CH0 enable interrupt        */
-  AD0CR         = 0x00200301;                  /* Power up, PCLK/4, sel AD0.0 */
-  VICVectAddr18 = (unsigned long)ADC_IRQHandler;/* Set Interrupt Vector       */
-  VICVectCntl18 = 14;                          /* use it for ADC Interrupt    */
-  VICIntEnable  = (1  << 18);                  /* Enable ADC Interrupt        */
-
+	PINSEL10 = 0;		/* Disable ETM interface */
+	FIO2DIR |= LED_MSK; /* LEDs, port 2, bit 0~7 output only */
 	init_serial();
-	
-  lcd_init();
-  lcd_clear();
-  lcd_print ("MCB2300 HID Demo");
-  set_cursor (0, 1);
-  lcd_print ("  www.huyhv8  ");
-	
-  printf("\r\n*****************************************\r\n\r\n");
-     
-  printf("EToken 2.0\r\n");	
-  printf("Hoang Viet Huy\r\n");
-  printf("SOICT-HUT-Vietnam\r\n");
-  printf("\r\n*****************************************\r\n");
-  printf("USB Initializing...\r\n");
-  
-  USB_Init();                               /* USB Initialization */
-  USB_Connect(__TRUE);                      /* USB Connect */
 
-  while (1)
+	lcd_init();
+	lcd_clear();
+	lcd_print("MCB2300 HID Demo");
+	set_cursor(0, 1);
+	lcd_print("    huyhv8  ");
+
+	printf("\r\n*****************************************\r\n\r\n");
+	printf("Hoang Viet Huy\r\n");
+	printf("SOICT-HUT-Vietnam\r\n");
+	printf("\r\n*****************************************\r\n");
+	printf("USB Initializing...\r\n");
+
+	USB_Init();			 /* USB Initialization */
+	USB_Connect(__TRUE); /* USB Connect */
+
+	WReady = 1;
+	RReady = 0; //Nothing to read;
+	printf("EToken ready!\r\n");
+	iState = 0; // Unauthenticated
+	
+	while (1)
 	{
-	//	printf ("1 second\n\r");
-		AD_value = AD_last;                 /* Read AD_last value                 */
-    if (AD_value != AD_last)            /* Make sure that AD interrupt did    */
-      AD_value = AD_last;               /* not interfere with value reading   */
-    AD_print  = AD_value;               /* Get unscaled value for printout    */
-    AD_value /= 13;                     /* Scale to AD_Value to 0 - 78        */
-    if (AD_old != AD_value)  {          /* If AD value has changed            */
-      AD_old = AD_value;
-      Disp_Bargraph(0, 1, AD_value);    /* Display bargraph according to AD   */
-    }
-    if (clock_1s) 
+		BOOL bStatus = __TRUE;
+		if (RReady) // Checking whether there is new data
+		{
+			RReady = 0;
+			switch (aPacket.iCmd)
 			{
-      clock_1s = 0;
-     // printf ("1 second\n\r");
-    }
-	}		
-}
 
+			case USB_CMD_AUTHENTICATE:
+				memcpy(&aAuthenticatePacket, aPacket.aData, 63);
+				AuthenticatePIN(aAuthenticatePacket);
+				break;
+			case USB_CMD_INFO:
+				bStatus = GetInfo();
+				if (bStatus == __FALSE)
+				{
+					continue;
+				}
+				break;
+
+			case USB_CMD_SETPASSWORD:
+				bStatus = SetPassword();
+				if (bStatus == __FALSE)
+				{
+					continue;
+				}
+				break;
+			case USB_CMD_WRITE:
+				bStatus = WriteRequest();
+				if (bStatus == __FALSE)
+				{
+					continue;
+				}
+				break;
+			case USB_CMD_READ:
+				bStatus = ReadRequest();
+				if (bStatus == __FALSE)
+				{
+					continue;
+				}
+				break;
+
+			default:
+				printf("Unrecognized command\r\n");
+			}
+		}
+	}
+}
 

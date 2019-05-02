@@ -39,5 +39,10 @@ typedef unsigned long long U64;
 typedef unsigned char      BIT;
 typedef unsigned int       BOOL;
 
+typedef unsigned char  BYTE;
+typedef unsigned short WORD;
+typedef unsigned long  DWORD;
+
+
 
 #endif  /* __TYPE_H__ */
