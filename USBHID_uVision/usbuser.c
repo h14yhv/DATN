@@ -180,20 +180,6 @@ int volatile iTemp ;
 void USB_EndPoint1 (U32 event) 
 {
 	WReady = 1;
-	
-/*	char szBuffer[64];
-  switch (event) {
-    case USB_EVT_IN:
-      GetInReport();
-			printf("\nIn");
-			memset(szBuffer, 0, 64);
-			strcpy (szBuffer, "Hello from device in");
-      USB_WriteEP(HID_EP_IN,(U8 *) szBuffer, sizeof(szBuffer));			
-			printf("\n%d", iTemp);
-			iTemp++; 
-      break;
-  }
-*/
 }
 
 
@@ -210,7 +196,7 @@ void USB_EndPoint2 (U32 event)
 		int iRead;
 		iRead = USB_ReadEP(0x02,(BYTE*)&aPacket);
 		RReady = 1;
-		printf("USB: Received %d bytes\r\n",iRead);
+		printf("\r\nUSB: Received %d bytes",iRead);
 		/*
 		for (iRead = 0;iRead<64;iRead++)
 			printf("%.2X ",((BYTE*)(&aPacket))[iRead]);
@@ -218,23 +204,10 @@ void USB_EndPoint2 (U32 event)
 	}
 	else
 	{
-		printf("USB: Device is too busy\r\n");
-		USB_SetStallEP(0x02);
+		printf("\r\nUSB: Device is too busy");
+		//USB_SetStallEP(0x02);
 	}
-/*		char szBuffer[64] = {0};
-	  switch (event)
-		{
-			case USB_EVT_OUT:
-				printf("\nOut");
-				GetInReport();
-				USB_ReadEP(HID_EP_OUT, (U8 *)szBuffer);
-				printf("%s", szBuffer);
-				USB_WriteEP(HID_EP_IN, (U8 *)szBuffer, strlen(szBuffer));
-				printf("\n%d", iTemp);
-				iTemp++; 
-				break;
-		}
-*/
+	return;
 }
 
 

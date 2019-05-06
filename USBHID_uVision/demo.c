@@ -111,7 +111,7 @@ int main(void)
 
 	WReady = 1;
 	RReady = 0; //Nothing to read;
-	printf("EToken ready!\r\n");
+	printf("\r\nEToken ready!");
 	iState = 0; // Unauthenticated
 	
 	while (1)
@@ -122,10 +122,14 @@ int main(void)
 			RReady = 0;
 			switch (aPacket.iCmd)
 			{
-
 			case USB_CMD_AUTHENTICATE:
+				memset(&aAuthenticatePacket, 0, sizeof(AUTHENTICATE_PACKET));
 				memcpy(&aAuthenticatePacket, aPacket.aData, 63);
-				AuthenticatePIN(aAuthenticatePacket);
+				bStatus = AuthenticatePIN(aAuthenticatePacket);
+				if (bStatus == __FALSE)
+				{
+					continue;
+				}
 				break;
 			case USB_CMD_INFO:
 				bStatus = GetInfo();
@@ -152,13 +156,13 @@ int main(void)
 			case USB_CMD_READ:
 				bStatus = ReadRequest();
 				if (bStatus == __FALSE)
-				{
+				{					
 					continue;
 				}
 				break;
 
 			default:
-				printf("Unrecognized command\r\n");
+				printf("\r\nUnrecognized command");
 			}
 		}
 	}

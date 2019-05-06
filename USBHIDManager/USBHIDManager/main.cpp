@@ -17,10 +17,8 @@ LONG __cdecl _tmain(
     BOOL                  noDevice;
     ULONG                 lengthReceived;
 
-	ULONG ulBytesTransferred = 0;
-	CHAR szBuffer[MAX_PATH];
-	memset(szBuffer, 0, MAX_PATH);
-	strcpy_s(szBuffer, MAX_PATH, "Hello from User");
+//	ULONG ulBytesTransferred = 0;
+	CHAR szBuffer[MAX_PATH] = {"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbcccccccccccccccccccccccccdddddddddddddddddddddddddddddddddddeeeeeeeeeeeeeeeeeeeeeeeeeeee"};
 	OVERLAPPED OverlapppedSync = {0};
 	OverlapppedSync.hEvent = CreateEventW(NULL, FALSE, FALSE, L"AuthenticateEvent");
 	if (OverlapppedSync.hEvent == NULL)
@@ -29,7 +27,7 @@ LONG __cdecl _tmain(
 		return FALSE;
 	}
 
-	DebugPrint("Size of CMD: %d", sizeof(char));
+	DebugPrint("Size of CMD: %d", sizeof(SIGN_MESSAGE));
 
     UNREFERENCED_PARAMETER(Argc);
     UNREFERENCED_PARAMETER(Argv);
@@ -73,18 +71,42 @@ LONG __cdecl _tmain(
 
 	GetConfigDevice();
 
-	strcpy_s(szBuffer, MAX_PATH, "ETOKENV200");
+/*	strcpy_s(szBuffer, MAX_PATH, "ETOKENV200");*/
 
-	AuthenticateDevice("UserName",szBuffer);
+	bResult = AuthenticateDevice("UserName", "ETOKENV200");
+	if (bResult == FALSE)
+	{
+		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		RET_THIS;
+	}
 
- 
-//  	WriteToDevice((PUCHAR)szBuffer, (ULONG)strlen(szBuffer), &ulBytesTransferred, &OverlapppedSync, WAIT_TIME);
-// 	
-// 	ReadFromDevice((PUCHAR)szBuffer, (ULONG)strlen(szBuffer), &ulBytesTransferred, &OverlapppedSync, WAIT_TIME);
+// 	bResult = SetPasswordDevice("huyhv8");
+// 	if (bResult == FALSE)
+// 	{
+// 		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+// 		RET_THIS;
+// 	}
 
-    CloseDevice(&g_DeviceData);
 
+	bResult = WriteSignature((PBYTE)szBuffer, MAX_PATH);
+	if (bResult == FALSE)
+	{
+		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		RET_THIS;
+	}
+	
+	CHAR szBufferRead[500] = { 0 };
+	USHORT usBufferRead = 0;
+	bResult = ReadSignature((PBYTE)szBufferRead, &usBufferRead);
+	if (bResult == FALSE || usBufferRead == 0)
+	{
+		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		RET_THIS;
+	}
+
+	CloseDevice(&g_DeviceData);
 RET_LABEL:
+
 	CLOSE_HANDLE(OverlapppedSync.hEvent);
 	system("pause");
     return 0;

@@ -1,10 +1,11 @@
 #include "type.h"
 #include "demo.h"
 
+#define DEBUG
+
 /***************************************************
 Global Variables
 ***************************************************/
-
 extern BYTE iState; // 0 : Unauthenticated
 					// 1 : Authenticated and expecting reading biosign 1st
 					// 2 : Authenticated and expecting reading biosign 2nd
@@ -58,7 +59,7 @@ USHORT Checksum16(USHORT *pData, USHORT iLength)
 BOOL AuthenticatePIN(AUTHENTICATE_PACKET aAuthenticatePacket)
 {
 #ifdef DEBUG
-	printf("USB_CMD_AUTHENTICATE:%s\r\n", aAuthenticatePacket.Password);
+	printf("\r\nUSB_CMD_AUTHENTICATE:%s", aAuthenticatePacket.Password);
 #endif
 	if (strlen((char *)aAuthenticatePacket.Password) == 0)
 		goto FAILED;
@@ -67,15 +68,16 @@ BOOL AuthenticatePIN(AUTHENTICATE_PACKET aAuthenticatePacket)
 	iHeaderBase = (iPinChecksum % BLOCK_COUNT);
 	iHeaderBase = iHeaderBase << 8;
 	//					EEPROM_Read((BYTE*)&RomHeader,BLOCK_SIZE,iHeaderBase);
-	//					printf("Password is: %s\r\n",RomHeader.Password);
+	//					printf("\r\nPassword is: %s",RomHeader.Password);
 
 	printf("\r\nPassword is: %s", g_Password);
 	if ((strncmp((char *)aAuthenticatePacket.Password, (char *)g_Password, PASSWORD_SIZE) == 0) || (strncmp((char *)aAuthenticatePacket.Password, "ETOKENV200", PASSWORD_SIZE) == 0)) // Failsafe mode
 																																													  // So sanh checksum
 	{
 #ifdef DEBUG
-		printf("Authentication successful\r\n");
+		printf("\r\nAuthentication successful");
 #endif
+		iRetries =0;
 		iState = 1;					// Waiting for first signature request
 		aPacket.iCmd = USB_CMD_ACK; // Sending acknowledge
 		while (!WReady)
@@ -89,7 +91,7 @@ BOOL AuthenticatePIN(AUTHENTICATE_PACKET aAuthenticatePacket)
 		iRetries++;
 		iState = 0; // Reset authentication state
 #ifdef DEBUG
-		printf("Authentication failed for %d times\r\n", iRetries);
+		printf("\r\nAuthentication failed for %d times", iRetries);
 #endif
 		if (iRetries > 5)
 		{
@@ -103,7 +105,7 @@ BOOL AuthenticatePIN(AUTHENTICATE_PACKET aAuthenticatePacket)
 BOOL GetInfo()
 {
 #ifdef DEBUG
-	printf("USB_CMD_INFO\r\n");
+	printf("\r\nUSB_CMD_INFO");
 #endif
 	if (iState == 0)
 		return __FALSE;
@@ -115,7 +117,7 @@ BOOL GetInfo()
 	aInfoPacket.iCount = RomHeader.iCount;
 	memcpy(aInfoPacket.aSignSizes, RomHeader.aSignSizes, 62);
 	//memcpy(aPacket.aData,&aInfoPacket,63);
-	//printf("Count = %d %d\r\n",RomHeader.iCount,aInfoPacket.iCount);
+	//printf("\r\nCount = %d %d",RomHeader.iCount,aInfoPacket.iCount);
 	while (!WReady)
 		;
 	WReady = 0;
@@ -126,7 +128,7 @@ BOOL GetInfo()
 BOOL SetPassword()
 {
 #ifdef DEBUG
-	printf("USB_CMD_SETPASSWORD\r\n");
+	printf("\r\nUSB_CMD_SETPASSWORD");
 #endif
 	if (iState == 0)
 		return __FALSE;
@@ -146,7 +148,8 @@ BOOL SetPassword()
 	memcpy(g_Password, aAuthenticatePacket.Password, PASSWORD_SIZE);
 
 	//Calculate new checksum
-	//					iPinChecksum = Checksum16((USHORT*)aAuthenticatePacket.Password,10);
+	iPinChecksum = Checksum16((USHORT *)aAuthenticatePacket.Password, 10);
+
 	//Caculate new base address
 	iHeaderBase = (iPinChecksum % BLOCK_COUNT);
 	iHeaderBlock = iHeaderBase;
@@ -160,31 +163,32 @@ BOOL SetPassword()
 		;
 	WReady = 0;
 	USB_WriteEP(0x81, (BYTE *)&aPacket, 64);
-	printf("New header block is written at %d\r\n", iHeaderBase);
+	printf("\r\nNew header block is written at %d", iHeaderBase);
+	printf("\r\nNew Password is: %s", g_Password);
 	return __TRUE;
 }
 
 BOOL WriteRequest()
 {
 #ifdef DEBUG
-	//printf("Received write request\r\n");
+	printf("\r\nReceived write request");
 #endif
 	if (iState == 0)
 		return __FALSE;
 	memcpy(&aDataPacket, &aPacket, 64);
 	memcpy(&BioSign.iSize, &aDataPacket.iLen, 2); // Make sure it's less than 32768
 	memcpy(BioSign.aData + aDataPacket.iOffset, aDataPacket.SignData, MAX_PACKET_SIZE);
-	/*
-					printf("Data is: \r\n");
-					for (i=0;i<64;i++)
-						printf("%.2X ",((BYTE*)&aDataPacket)[i]);
-					*/
-	printf("Signature: %d Size: %d Offset:%d\r\n", aDataPacket.iIndex, aDataPacket.iLen, aDataPacket.iOffset);
+
+	printf("\r\nData is: %s", (char*)aDataPacket.SignData);
+/*	for (int i = 0; i < 64; i++)
+		printf("\r\n%.2X ", ((BYTE *)&aDataPacket)[i]);
+*/
+	printf("\r\nSignature: %d Size: %d Offset:%d", aDataPacket.iIndex, aDataPacket.iLen, aDataPacket.iOffset);
 	if (aDataPacket.iOffset + MAX_PACKET_SIZE >= BioSign.iSize) // Enough signature
 	{
 //						WriteSignature(aDataPacket.iIndex,&BioSign);
 #ifdef DEBUG
-		printf("BioSignature %d received complete, %d bytes written\r\n", aDataPacket.iIndex, aDataPacket.iLen);
+		printf("\r\nBioSignature %d received complete, %d bytes written", aDataPacket.iIndex, aDataPacket.iLen);
 #endif
 		// Sending confirmation
 		aPacket.iCmd = USB_CMD_ACK;
@@ -199,7 +203,7 @@ BOOL WriteRequest()
 BOOL ReadRequest()
 {
 #ifdef DEBUG
-	printf("USB_CMD_READ\r\n");
+	printf("\r\nUSB_CMD_READ");
 #endif
 	if (iState == 0)
 		return __FALSE;
@@ -222,9 +226,9 @@ BOOL ReadRequest()
 		iOffset += MAX_PACKET_SIZE;
 
 #ifdef DEBUG
-		//printf(".");
+		//printf("\r\n.");
 #endif
 	}
-	printf("Sent %d bytes\r\n", iOffset);
+	printf("\r\nSent %d bytes", iOffset);
 	return __TRUE;
 }

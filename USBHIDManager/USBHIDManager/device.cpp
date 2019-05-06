@@ -314,15 +314,17 @@ RET_LABEL:
 	return bResult;
 }
 
-BOOL WriteToDevice(PUCHAR pDataMessage, ULONG ulBufferLength, PULONG pulLenghTransferred, LPOVERLAPPED pOverlapppedSync, DWORD dwTimeOut)
+BOOL WriteToDevice(PBYTE pDataMessage, ULONG ulBufferLength, PULONG pulLenghTransferred, LPOVERLAPPED pOverlapppedSync, DWORD dwTimeOut)
 {
+	UNREFERENCED_PARAMETER(ulBufferLength);
+
 	BOOL bResult = FALSE;
 	DWORD dwRetWait = 0;
 
 	bResult = WinUsb_WritePipe(g_DeviceData.hWinUSBInterfaceHandle,
 		g_DeviceData.uBulkOutPipeId,
-		(PUCHAR)pDataMessage,
-		ulBufferLength,
+		(PBYTE)pDataMessage,
+		MAX_PACKET_SIZE,
 		pulLenghTransferred,
 		pOverlapppedSync);
 	if (bResult == FALSE && GetLastError() != ERROR_IO_PENDING)
@@ -351,18 +353,20 @@ BOOL WriteToDevice(PUCHAR pDataMessage, ULONG ulBufferLength, PULONG pulLenghTra
 		return FALSE;
 	}
 
+	DebugPrint("WriteToDevice: %d OK", *pulLenghTransferred);
 	return TRUE;
 }
 
-BOOL ReadFromDevice(PUCHAR pDataMessage, ULONG ulBufferLength, PULONG pulLenghTransferred, LPOVERLAPPED pOverlapppedSync, DWORD dwTimeOut)
+BOOL ReadFromDevice(PBYTE pDataMessage, ULONG ulBufferLength, PULONG pulLenghTransferred, LPOVERLAPPED pOverlapppedSync, DWORD dwTimeOut)
 {
+	UNREFERENCED_PARAMETER(ulBufferLength);
 	BOOL bResult;
 	DWORD dwRetWait = 0;
 
 	bResult = WinUsb_ReadPipe(g_DeviceData.hWinUSBInterfaceHandle,
 		g_DeviceData.uBulkInPipeId,
-		(PUCHAR)pDataMessage,
-		ulBufferLength,
+		(PBYTE)pDataMessage,
+		MAX_PACKET_SIZE,
 		pulLenghTransferred,
 		pOverlapppedSync);
 	if (bResult == FALSE && GetLastError() != ERROR_IO_PENDING)
@@ -390,14 +394,14 @@ BOOL ReadFromDevice(PUCHAR pDataMessage, ULONG ulBufferLength, PULONG pulLenghTr
 		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
 		return FALSE;
 	}
-
+	DebugPrint("ReadFromDevice %d OK", *pulLenghTransferred);
 	return TRUE;
 }
 
 BOOL FlushDevice()
 {
 	BOOL bStatus = TRUE;
-	ULONG ulDataSizeTransferred = 0;
+//	ULONG ulDataSizeTransferred = 0;
 	OVERLAPPED OverlapppedSync = { 0 };
 	PDATA_MESSAGE pDataMessage = NULL;
 
@@ -415,20 +419,20 @@ BOOL FlushDevice()
 		RET_THIS_STATUS(bStatus, FALSE);
 	}
 
-	OverlapppedSync.hEvent = CreateEventW(NULL, FALSE, FALSE, L"IsFlushedEvent");
-	if (OverlapppedSync.hEvent == NULL)
-	{
-		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
-		RET_THIS_STATUS(bStatus, FALSE);
-	}
-
-	//Check Is Pipe clean, if read true is fault
-	bStatus = ReadFromDevice((PUCHAR)pDataMessage, sizeof(DATA_MESSAGE), &ulDataSizeTransferred, &OverlapppedSync, CHECK_CLEAN_TIME);
-	if (bStatus == TRUE || ulDataSizeTransferred != 0)
-	{
-		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
-		RET_THIS_STATUS(bStatus, FALSE);
-	}
+// 	OverlapppedSync.hEvent = CreateEventW(NULL, FALSE, FALSE, L"IsFlushedEvent");
+// 	if (OverlapppedSync.hEvent == NULL)
+// 	{
+// 		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+// 		RET_THIS_STATUS(bStatus, FALSE);
+// 	}
+// 
+// 	//Check Is Pipe clean, if read true is fault
+// 	bStatus = ReadFromDevice((PUCHAR)pDataMessage, sizeof(DATA_MESSAGE), &ulDataSizeTransferred, &OverlapppedSync, CHECK_CLEAN_TIME);
+// 	if (bStatus == TRUE || ulDataSizeTransferred != 0)
+// 	{
+// 		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+// 		RET_THIS_STATUS(bStatus, FALSE);
+// 	}
 	bStatus = TRUE;
 RET_LABEL:
 	FREE(pDataMessage);
@@ -436,7 +440,7 @@ RET_LABEL:
 	return bStatus;
 }
 
-BOOL SetPasswordDevice(BYTE* bPasswordHashed)
+BOOL SetPasswordDevice(PCHAR szPasswordHashed)
 {
 	BOOL bStatus = TRUE;
 	ULONG ulDataSizeTransferred = 0;
@@ -449,13 +453,14 @@ BOOL SetPasswordDevice(BYTE* bPasswordHashed)
 		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
 		RET_THIS_STATUS(bStatus, FALSE);
 	}
+	MEMSET(pDataMessage, 0, sizeof(DATA_MESSAGE));
 
-	bStatus = FlushDevice();
-	if (bStatus == FALSE)
-	{
-		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
-		RET_THIS_STATUS(bStatus, FALSE);
-	}
+// 	bStatus = FlushDevice();
+// 	if (bStatus == FALSE)
+// 	{
+// 		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+// 		RET_THIS_STATUS(bStatus, FALSE);
+// 	}
 
 	OverlapppedSync.hEvent = CreateEventW(NULL, FALSE, FALSE, L"SetPasswordEvent");
 	if (OverlapppedSync.hEvent == NULL)
@@ -465,11 +470,11 @@ BOOL SetPasswordDevice(BYTE* bPasswordHashed)
 	}
 
 	//Set Data Message
-	pDataMessage->iCmd = SET_PASSWORD;
-/*	memcpy_s(pDataMessage->, PASSWORD_SIZE, bPasswordHashed, sizeof(bPasswordHashed));*/
+	pDataMessage->iCmd = USB_CMD_SETPASSWORD;
+	strcpy_s((PCHAR)pDataMessage->Data.AuthenticatePacket.Password, PASSWORD_SIZE, (PCHAR)szPasswordHashed);
 
 	//Send Data Message
-	bStatus = WriteToDevice((PUCHAR)pDataMessage, sizeof(DATA_MESSAGE), &ulDataSizeTransferred, &OverlapppedSync, WAIT_TIME);
+	bStatus = WriteToDevice((PBYTE)pDataMessage, sizeof(DATA_MESSAGE), &ulDataSizeTransferred, &OverlapppedSync, WAIT_TIME);
 	if (bStatus == FALSE || ulDataSizeTransferred == 0)
 	{
 		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
@@ -477,8 +482,14 @@ BOOL SetPasswordDevice(BYTE* bPasswordHashed)
 	}
 
 	//Get Data Message from Device
-	bStatus = ReadFromDevice((PUCHAR)pDataMessage, sizeof(DATA_MESSAGE), &ulDataSizeTransferred, &OverlapppedSync, WAIT_TIME);
+	bStatus = ReadFromDevice((PBYTE)pDataMessage, sizeof(DATA_MESSAGE), &ulDataSizeTransferred, &OverlapppedSync, WAIT_TIME);
 	if (bStatus == FALSE || ulDataSizeTransferred == 0)
+	{
+		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		RET_THIS_STATUS(bStatus, FALSE);
+	}
+
+	if (pDataMessage->iCmd != USB_CMD_ACK)
 	{
 		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
 		RET_THIS_STATUS(bStatus, FALSE);
@@ -504,7 +515,7 @@ BOOL AuthenticateDevice(PCHAR szUserName, PCHAR szPasswordHashed)
 		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
 		RET_THIS_STATUS(bStatus, FALSE);
 	}
-	memset(pDataMessage, 0, sizeof(DATA_MESSAGE));
+	MEMSET(pDataMessage, 0, sizeof(DATA_MESSAGE));
 
 	bStatus = FlushDevice();
 	if (bStatus == FALSE)
@@ -521,12 +532,14 @@ BOOL AuthenticateDevice(PCHAR szUserName, PCHAR szPasswordHashed)
 	}
 
 	pDataMessage->iCmd = USB_CMD_AUTHENTICATE;
-	strcpy_s((PCHAR)pDataMessage->Data.AuthenticatePacket.Password, PASSWORD_SIZE, (PCHAR)szPasswordHashed);
-	strcpy_s((PCHAR)pDataMessage->Data.AuthenticatePacket.Username, USERNAME_SIZE, szUserName);
+	strcpy_s((PCHAR)pDataMessage->Data.AuthenticatePacket.Username, strlen(szUserName) + 1, szUserName);
+	strcpy_s((PCHAR)pDataMessage->Data.AuthenticatePacket.Password, strlen(szPasswordHashed) +1 , szPasswordHashed);
+
+	DebugPrint("%s %s", pDataMessage->Data.AuthenticatePacket.Username, pDataMessage->Data.AuthenticatePacket.Password);
 	//memcpy_s(pDataMessage->Data.AuthenticatePacket.Password, PASSWORD_SIZE, bPasswordHashed, sizeof(bPasswordHashed));
 
 	//Send Data Message
-	bStatus = WriteToDevice((PUCHAR)pDataMessage, sizeof(DATA_MESSAGE), &ulDataSizeTransferred, &OverlapppedSync, WAIT_TIME);
+	bStatus = WriteToDevice((PBYTE)pDataMessage, MAX_PACKET_SIZE, &ulDataSizeTransferred, &OverlapppedSync, WAIT_TIME);
 	if (bStatus == FALSE || ulDataSizeTransferred == 0)
 	{
 		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
@@ -534,7 +547,7 @@ BOOL AuthenticateDevice(PCHAR szUserName, PCHAR szPasswordHashed)
 	}
 
 	//Get Data Message from Device
-	bStatus = ReadFromDevice((PUCHAR)pDataMessage, sizeof(DATA_MESSAGE), &ulDataSizeTransferred, &OverlapppedSync, WAIT_TIME);
+	bStatus = ReadFromDevice((PBYTE)pDataMessage, sizeof(DATA_MESSAGE), &ulDataSizeTransferred, &OverlapppedSync, WAIT_TIME);
 	if (bStatus == FALSE || ulDataSizeTransferred == 0)
 	{
 		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
@@ -546,6 +559,7 @@ BOOL AuthenticateDevice(PCHAR szUserName, PCHAR szPasswordHashed)
 		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
 		RET_THIS_STATUS(bStatus, FALSE);
 	}
+
 	DebugPrint("Authenticate OK");
 RET_LABEL:
 	FREE(pDataMessage);
@@ -553,26 +567,103 @@ RET_LABEL:
 	return bStatus;
 }
 
-BOOL ReadSignature()
+BOOL WriteSignature(PBYTE pSignature, USHORT usSignSize)
 {
 	BOOL bStatus = TRUE;
-	PDATA_MESSAGE pDataMessage = NULL;
+	PSIGN_MESSAGE pDataMessage = NULL;
 	ULONG ulDataSizeTransferred = 0;
 	OVERLAPPED OverlapppedSync = { 0 };
+	INT iIndexPacket = 0;
 
-	pDataMessage = (PDATA_MESSAGE)ALLOC(sizeof(DATA_MESSAGE));
+	pDataMessage = (PSIGN_MESSAGE)ALLOC(sizeof(SIGN_MESSAGE));
 	if (pDataMessage == NULL)
 	{
 		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
 		RET_THIS_STATUS(bStatus, FALSE);
 	}
+	MEMSET(pDataMessage, 0, sizeof(SIGN_MESSAGE));
 
-	bStatus = FlushDevice();
-	if (bStatus == FALSE)
+// 	bStatus = FlushDevice();
+// 	if (bStatus == FALSE)
+// 	{
+// 		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+// 		RET_THIS_STATUS(bStatus, FALSE);
+// 	}
+
+	OverlapppedSync.hEvent = CreateEventW(NULL, FALSE, FALSE, L"WriteSignatureEvent");
+	if (OverlapppedSync.hEvent == NULL)
 	{
 		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
 		RET_THIS_STATUS(bStatus, FALSE);
 	}
+
+	//Set information for packet
+	pDataMessage->iCmd = USB_CMD_WRITE;
+	pDataMessage->iLenSign = usSignSize;
+
+	while (pDataMessage->iOffset < usSignSize)
+	{
+		Sleep(400);
+		MEMSET(pDataMessage->SignData, 0, MAX_DATA_SIGN_SIZE);
+
+		pDataMessage->iIndex = (BYTE)iIndexPacket;
+		memcpy_s(pDataMessage->SignData, MAX_DATA_SIGN_SIZE, pSignature + pDataMessage->iOffset, MAX_DATA_SIGN_SIZE);
+
+		//Send Data Message
+		bStatus = WriteToDevice((PUCHAR)pDataMessage, sizeof(SIGN_MESSAGE), &ulDataSizeTransferred, &OverlapppedSync, WAIT_TIME);
+		if (bStatus == FALSE || ulDataSizeTransferred == 0)
+		{
+			PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+			RET_THIS_STATUS(bStatus, FALSE);
+		}
+
+		pDataMessage->iOffset += MAX_DATA_SIGN_SIZE;
+		iIndexPacket++;
+	}
+
+	//Get Data Message from Device
+	bStatus = ReadFromDevice((PBYTE)pDataMessage, sizeof(PSIGN_MESSAGE), &ulDataSizeTransferred, &OverlapppedSync, WAIT_TIME);
+	if (bStatus == FALSE || ulDataSizeTransferred == 0)
+	{
+		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		RET_THIS_STATUS(bStatus, FALSE);
+	}
+
+	if (pDataMessage->iCmd != USB_CMD_ACK)
+	{
+		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		RET_THIS_STATUS(bStatus, FALSE);
+	}
+
+	DebugPrint("Write Signature OK: %d, %s", usSignSize, pSignature);
+
+RET_LABEL:
+	FREE(pDataMessage);
+	CLOSE_HANDLE(OverlapppedSync.hEvent);
+	return bStatus;
+}
+
+BOOL ReadSignature(PBYTE pSignature, PUSHORT usSignSizeTransferred)
+{
+	BOOL bStatus = TRUE;
+	PSIGN_MESSAGE pDataMessage = NULL;
+	ULONG ulDataSizeTransferred = 0;
+	OVERLAPPED OverlapppedSync = { 0 };
+
+	pDataMessage = (PSIGN_MESSAGE)ALLOC(sizeof(SIGN_MESSAGE));
+	if (pDataMessage == NULL)
+	{
+		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		RET_THIS_STATUS(bStatus, FALSE);
+	}
+	MEMSET(pDataMessage, 0, sizeof(SIGN_MESSAGE));
+
+	// 	bStatus = FlushDevice();
+	// 	if (bStatus == FALSE)
+	// 	{
+	// 		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+	// 		RET_THIS_STATUS(bStatus, FALSE);
+	// 	}
 
 	OverlapppedSync.hEvent = CreateEventW(NULL, FALSE, FALSE, L"ReadSignatureEvent");
 	if (OverlapppedSync.hEvent == NULL)
@@ -581,20 +672,37 @@ BOOL ReadSignature()
 		RET_THIS_STATUS(bStatus, FALSE);
 	}
 
-	pDataMessage->iCmd = AUTHENTICATE;
-//	memcpy_s(pDataMessage->szPasswordHashed, PASSWORD_SIZE, bPasswordHashed, sizeof(bPasswordHashed));
-
-	//Send Data Message
-	bStatus = WriteToDevice((PUCHAR)pDataMessage, sizeof(DATA_MESSAGE), &ulDataSizeTransferred, &OverlapppedSync, WAIT_TIME);
+	//Set information for packet
+	pDataMessage->iCmd = USB_CMD_READ;
+	bStatus = WriteToDevice((PUCHAR)pDataMessage, sizeof(SIGN_MESSAGE), &ulDataSizeTransferred, &OverlapppedSync, WAIT_TIME);
 	if (bStatus == FALSE || ulDataSizeTransferred == 0)
 	{
 		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
 		RET_THIS_STATUS(bStatus, FALSE);
 	}
 
-// 	do 
-// 	{
-// 	} while ();
+	do 
+	{
+		//Get Data Message from Device
+		bStatus = ReadFromDevice((PBYTE)pDataMessage, sizeof(PSIGN_MESSAGE), &ulDataSizeTransferred, &OverlapppedSync, WAIT_TIME);
+		if (bStatus == FALSE || ulDataSizeTransferred == 0)
+		{
+			PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+			RET_THIS_STATUS(bStatus, FALSE);
+		}
+		if (pDataMessage->iCmd != USB_CMD_READ)
+		{
+			PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+			RET_THIS_STATUS(bStatus, FALSE);
+		}
+
+		DebugPrint("Read Signature : %s", pDataMessage->SignData);
+		memcpy_s(pSignature + pDataMessage->iOffset, MAX_SIGNATURE_SIZE, pDataMessage->SignData, MAX_DATA_SIGN_SIZE);
+
+		*usSignSizeTransferred += MAX_DATA_SIGN_SIZE;
+	} while (*usSignSizeTransferred < pDataMessage->iLenSign);
+
+	DebugPrint("Read Signature OK: %s", pSignature);
 
 RET_LABEL:
 	FREE(pDataMessage);

@@ -1,0 +1,10 @@
+LIBRARY USBTOKENMANAGERDLL
+EXPORTS
+	OpenDevice
+	CloseDevice
+	GetConfigDevice
+	AuthenticateDevice
+	SetPasswordDevice
+	WriteSignature
+	ReadSignature
+	FlushDevice
