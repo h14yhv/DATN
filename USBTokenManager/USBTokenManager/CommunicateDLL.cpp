@@ -14,7 +14,7 @@ typedef int(__stdcall *ReadSignature_ptr)(PBYTE pSignature, PUSHORT usSignSizeTr
 
 INT GetProcAddressFromDLL()
 {
-	HINSTANCE hGetProcIDDLL = LoadLibrary(L"USBTokenManagerDLL.dll");
+	HINSTANCE hGetProcIDDLL = LoadLibrary("USBTokenManagerDLL.dll");
 
 	if (!hGetProcIDDLL) {
 		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);

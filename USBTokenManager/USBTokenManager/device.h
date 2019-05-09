@@ -56,15 +56,16 @@ enum USB_CMD
 	USB_CMD_AUTHENTICATE,
 	USB_CMD_ADD,
 	USB_CMD_SETPASSWORD,
-	USB_CMD_ACK
+	USB_CMD_ACK,
+	USB_CMD_FAIL
 };
 
 #define MAX_PACKET_SIZE 64
-#define PASSWORD_SIZE 31
-#define USERNAME_SIZE 31
-#define  MAX_NUMBER_SIGNATURES		31
-#define  MAX_DATA_SIGN_SIZE		  	58
-#define  MAX_SIGNATURE_SIZE			0x4000
+#define USERNAME_SIZE 30
+#define PASSWORD_SIZE 33
+#define MAX_NUMBER_SIGNATURES		31
+#define MAX_DATA_SIGN_SIZE		  	58
+#define MAX_SIGNATURE_SIZE			0x4000
 
 typedef struct _DATA_PACKET
 {
@@ -77,9 +78,8 @@ typedef struct _DATA_PACKET
 
 typedef struct _AUTHENTICATE_PACKET   //??? need more consideration
 {
-	BYTE	bReserved;
-	BYTE	Username[31];
-	BYTE	Password[31];
+	BYTE	Username[USERNAME_SIZE];
+	BYTE	Password[PASSWORD_SIZE];
 } AUTHENTICATE_PACKET;
 
 typedef struct _INFO_PACKET
@@ -119,9 +119,9 @@ Function Prototype
 HRESULT OpenDevice( PDEVICE_DATA DeviceData,PBOOL FailureDeviceNotFound );
 VOID CloseDevice( PDEVICE_DATA DeviceData);
 BOOL GetConfigDevice();
-BOOL AuthenticateDevice(PCHAR szPasswordHashed);
+BOOL AuthenticateDevice(PCHAR szPassword);
 BOOL FlushDevice();
-BOOL SetPasswordDevice(PCHAR szPasswordHashed);
+BOOL SetPasswordDevice(PCHAR szPassword);
 BOOL WriteSignature(PBYTE pSignature, USHORT usSignSize);
 BOOL ReadSignature(PBYTE pSignature, PUSHORT usSignSizeTransferred);
 

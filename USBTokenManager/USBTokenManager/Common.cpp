@@ -4,6 +4,8 @@
 
 WCHAR g_szLogPath[SMA_SIZE] = L"Setup.txt";
 
+#pragma managed(push, off)
+
 std::string UnicodeToUtf8(LPCWSTR pszUnicode)
 {
 	LPSTR	pszUtf8;
@@ -168,7 +170,6 @@ BOOLEAN WriteLogFile(__in LPCWSTR pszFormat, ...)
 		RET_THIS_STATUS(bStatus, FALSE);
 	};
 	memset(szBuffer, 0, MED_SIZE);
-
 	va_start(args, pszFormat);
 	if (vswprintf_s(szBufferTemp, MAX_PATH, pszFormat, args) <= 0)
 	{
@@ -219,6 +220,7 @@ RET_LABEL:
 	CLOSE_HANDLE(hFile);
 	return bStatus;
 }
+
 
 BOOLEAN PrintError(__in LPCSTR pszFormat, ...)
 {
@@ -285,3 +287,5 @@ BOOL ErrorExit(LPSTR lpszFunction)
 	LocalFree(lpMsgBuf);
 	return TRUE;
 }
+
+#pragma managed(pop)
