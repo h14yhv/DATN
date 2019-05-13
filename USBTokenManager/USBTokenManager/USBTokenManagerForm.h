@@ -240,9 +240,9 @@ namespace USBTokenManager {
 			this->lblSignatureWrite->AutoSize = true;
 			this->lblSignatureWrite->Location = System::Drawing::Point(14, 190);
 			this->lblSignatureWrite->Name = L"lblSignatureWrite";
-			this->lblSignatureWrite->Size = System::Drawing::Size(124, 17);
+			this->lblSignatureWrite->Size = System::Drawing::Size(106, 17);
 			this->lblSignatureWrite->TabIndex = 18;
-			this->lblSignatureWrite->Text = L"Signature Receive";
+			this->lblSignatureWrite->Text = L"Signature Write";
 			// 
 			// lblSignatureRead
 			// 

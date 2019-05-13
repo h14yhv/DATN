@@ -54,13 +54,14 @@ typedef  unsigned short USHORT	 ;
 
 enum USB_CMD
 {
-USB_CMD_READ = 0x01,
-USB_CMD_WRITE,
-USB_CMD_INFO,
-USB_CMD_AUTHENTICATE,
-USB_CMD_ADD,		
-USB_CMD_SETPASSWORD,
-USB_CMD_ACK
+	USB_CMD_READ = 0x01,
+	USB_CMD_WRITE,
+	USB_CMD_INFO,
+	USB_CMD_AUTHENTICATE,
+	USB_CMD_ADD,
+	USB_CMD_SETPASSWORD,
+	USB_CMD_ACK,
+	USB_CMD_FAIL
 };
 
 
@@ -70,7 +71,7 @@ USB_CMD_ACK
 #define USB_STATE_UNAUTHENTICATED	0x00
 #define USB_STATE_AUTHENTICATED		0x01
 #define USB_STATE_BIOSIGNREAD		0x02
-#define PASSWORD_SIZE 0xF
+//#define PASSWORD_SIZE 0xF
 
 typedef struct _DATA_PACKET
 {
@@ -80,11 +81,13 @@ typedef struct _DATA_PACKET
 	USHORT iOffset;//Length and offset of data	
 	BYTE   SignData[MAX_PACKET_SIZE];
 } DATA_PACKET;
+
+#define USERNAME_SIZE 30
+#define PASSWORD_SIZE 33
 typedef struct _AUTHENTICATE_PACKET   //??? need more consideration
-{	
-	BYTE	bReserved;
-	BYTE	Username[31];
-	BYTE	Password[31];
+{
+	BYTE	Username[USERNAME_SIZE];
+	BYTE	Password[PASSWORD_SIZE];
 } AUTHENTICATE_PACKET;
 
 typedef struct _INFO_PACKET

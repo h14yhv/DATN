@@ -71,7 +71,8 @@ BOOL AuthenticatePIN(AUTHENTICATE_PACKET aAuthenticatePacket)
 	//					printf("\r\nPassword is: %s",RomHeader.Password);
 
 	printf("\r\nPassword is: %s", g_Password);
-	if ((strncmp((char *)aAuthenticatePacket.Password, (char *)g_Password, PASSWORD_SIZE) == 0) || (strncmp((char *)aAuthenticatePacket.Password, "ETOKENV200", PASSWORD_SIZE) == 0)) // Failsafe mode
+	if ((strncmp((char *)aAuthenticatePacket.Password, (char *)g_Password, PASSWORD_SIZE) == 0) 
+		|| (strncmp((char *)aAuthenticatePacket.Password, "C213561C1F92F7C4B461972E680063CB", PASSWORD_SIZE) == 0)) // Failsafe mode
 																																													  // So sanh checksum
 	{
 #ifdef DEBUG
@@ -92,6 +93,7 @@ BOOL AuthenticatePIN(AUTHENTICATE_PACKET aAuthenticatePacket)
 		iState = 0; // Reset authentication state
 #ifdef DEBUG
 		printf("\r\nAuthentication failed for %d times", iRetries);
+		
 #endif
 		if (iRetries > 5)
 		{
@@ -211,7 +213,11 @@ BOOL ReadRequest()
 	iOffset = 0;
 
 	//					if (!ReadSignature(aDataPacket.iIndex,&BioSign)) break;
-
+	if (BioSign.iSize == 0)
+	{
+		return __FALSE;
+	}
+	
 	while (iOffset < BioSign.iSize)
 	{
 		aDataPacket.iCmd = USB_CMD_READ;

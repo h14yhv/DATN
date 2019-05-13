@@ -113,7 +113,7 @@ int main(void)
 	RReady = 0; //Nothing to read;
 	printf("\r\nEToken ready!");
 	iState = 0; // Unauthenticated
-	
+
 	while (1)
 	{
 		BOOL bStatus = __TRUE;
@@ -128,6 +128,11 @@ int main(void)
 				bStatus = AuthenticatePIN(aAuthenticatePacket);
 				if (bStatus == __FALSE)
 				{
+					aPacket.iCmd = USB_CMD_FAIL; // Sending acknowledge
+					while (!WReady)
+						;
+					WReady = 0;
+					USB_WriteEP(0x81, (BYTE *)&aPacket, 64);
 					continue;
 				}
 				break;
@@ -135,6 +140,11 @@ int main(void)
 				bStatus = GetInfo();
 				if (bStatus == __FALSE)
 				{
+					aPacket.iCmd = USB_CMD_FAIL; // Sending acknowledge
+					while (!WReady)
+						;
+					WReady = 0;
+					USB_WriteEP(0x81, (BYTE *)&aPacket, 64);
 					continue;
 				}
 				break;
@@ -143,6 +153,11 @@ int main(void)
 				bStatus = SetPassword();
 				if (bStatus == __FALSE)
 				{
+					aPacket.iCmd = USB_CMD_FAIL; // Sending acknowledge
+					while (!WReady)
+						;
+					WReady = 0;
+					USB_WriteEP(0x81, (BYTE *)&aPacket, 64);
 					continue;
 				}
 				break;
@@ -150,13 +165,23 @@ int main(void)
 				bStatus = WriteRequest();
 				if (bStatus == __FALSE)
 				{
+					aPacket.iCmd = USB_CMD_FAIL; // Sending acknowledge
+					while (!WReady)
+						;
+					WReady = 0;
+					USB_WriteEP(0x81, (BYTE *)&aPacket, 64);
 					continue;
 				}
 				break;
 			case USB_CMD_READ:
 				bStatus = ReadRequest();
 				if (bStatus == __FALSE)
-				{					
+				{
+					aPacket.iCmd = USB_CMD_FAIL; // Sending acknowledge
+					while (!WReady)
+						;
+					WReady = 0;
+					USB_WriteEP(0x81, (BYTE *)&aPacket, 64);
 					continue;
 				}
 				break;
@@ -167,4 +192,3 @@ int main(void)
 		}
 	}
 }
-
