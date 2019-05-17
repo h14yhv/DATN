@@ -1,5 +1,6 @@
 #include "type.h"
 #include "demo.h"
+#include "Flash.h"
 
 #define DEBUG
 
@@ -67,6 +68,9 @@ BOOL AuthenticatePIN(AUTHENTICATE_PACKET aAuthenticatePacket)
 	iPinChecksum = Checksum16((USHORT *)aAuthenticatePacket.Password, PASSWORD_SIZE);
 	iHeaderBase = (iPinChecksum % BLOCK_COUNT);
 	iHeaderBase = iHeaderBase << 8;
+	
+	flash_read(PASSWORD_ADDR_IN_FLASH, g_Password, PASSWORD_SIZE);
+	// printf("\r\nPassword is: %s",RomHeader.Password);
 	//					EEPROM_Read((BYTE*)&RomHeader,BLOCK_SIZE,iHeaderBase);
 	//					printf("\r\nPassword is: %s",RomHeader.Password);
 
@@ -129,6 +133,7 @@ BOOL GetInfo()
 
 BOOL SetPassword()
 {
+	BOOL bStatus = __TRUE; 
 #ifdef DEBUG
 	printf("\r\nUSB_CMD_SETPASSWORD");
 #endif
@@ -139,15 +144,26 @@ BOOL SetPassword()
 
 	// Erase old header block
 	// EEPROM_ErasePage(iHeaderBase);
-
-	// Reset rom header
-	memset(&RomHeader, 0x00, sizeof(RomHeader));
-	//					EEPROM_Write((BYTE*)&RomHeader,sizeof(RomHeader),iHeaderBase);
+	//flash_erase(PASSWORD_ADDR_IN_FLASH);
 
 	// Setting new PIN code
 	memcpy(&aAuthenticatePacket, aPacket.aData, 63);
 	memcpy(RomHeader.Password, aAuthenticatePacket.Password, 10);
+
 	memcpy(g_Password, aAuthenticatePacket.Password, PASSWORD_SIZE);
+
+		// Reset rom header
+	memset(&RomHeader, 0x00, sizeof(RomHeader));
+	printf("Password Hashed: %s",aAuthenticatePacket.Password );
+	
+	bStatus =  flash_write(PASSWORD_ADDR_IN_FLASH, aAuthenticatePacket.Password);
+	if(bStatus == 1)
+	{
+		printf("Write to flash failed");
+		return __FALSE;
+	}
+	
+	//					EEPROM_Write((BYTE*)&RomHeader,sizeof(RomHeader),iHeaderBase);
 
 	//Calculate new checksum
 	iPinChecksum = Checksum16((USHORT *)aAuthenticatePacket.Password, 10);
@@ -188,6 +204,7 @@ BOOL WriteRequest()
 	printf("\r\nSignature: %d Size: %d Offset:%d", aDataPacket.iIndex, aDataPacket.iLen, aDataPacket.iOffset);
 	if (aDataPacket.iOffset + MAX_PACKET_SIZE >= BioSign.iSize) // Enough signature
 	{
+		flash_write(SIGNATURE_ADDR_IN_FLASH, BioSign.aData);
 //						WriteSignature(aDataPacket.iIndex,&BioSign);
 #ifdef DEBUG
 		printf("\r\nBioSignature %d received complete, %d bytes written", aDataPacket.iIndex, aDataPacket.iLen);
@@ -217,6 +234,12 @@ BOOL ReadRequest()
 	{
 		return __FALSE;
 	}
+	if (flash_read(SIGNATURE_ADDR_IN_FLASH, BioSign.aData, 256) == 1)
+	{
+		printf("\nRead failed");
+		return __FALSE;
+	}
+	BioSign.iSize = 256;
 	
 	while (iOffset < BioSign.iSize)
 	{

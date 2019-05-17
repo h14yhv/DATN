@@ -17,6 +17,7 @@
 
 #include "demo.h"
 #include "LCD.h"
+#include "Flash.h"
 
 #define DEBUG
 
@@ -90,6 +91,10 @@ void SetOutReport(void)
 /* Main Program */
 int main(void)
 {
+	char szPath[256] = "Check flash firmware";
+	char read[256] = {0};
+	BOOL bStatus;
+
 	PINSEL10 = 0;		/* Disable ETM interface */
 	FIO2DIR |= LED_MSK; /* LEDs, port 2, bit 0~7 output only */
 	init_serial();
@@ -113,6 +118,31 @@ int main(void)
 	RReady = 0; //Nothing to read;
 	printf("\r\nEToken ready!");
 	iState = 0; // Unauthenticated
+
+	// Init(0x00058000,4000000,2); //4096000
+
+	//Init(0x00058000,4096000,2);
+
+	__disable_irq();
+
+	printf("\nBuffer write: %s", szPath);
+	bStatus = flash_write(0x00058000, (U8 *)szPath);
+	if (bStatus == 1)
+	{
+		lcd_print("Write failed");
+		printf("\nWrite failed");
+	}
+
+	flash_read(0x00058000, (U8 *)read, 256);
+	if (bStatus == 1)
+	{
+		lcd_print("Read failed");
+		printf("\nRead failed");
+	}
+
+	printf("\nRead: %s", read);
+
+	__enable_irq();
 
 	while (1)
 	{
