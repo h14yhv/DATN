@@ -1,3 +1,5 @@
+#using <mscorlib.dll>
+
 #include "USBTokenManagerForm.h"
 #include "device.h"
 #include "Common.h"

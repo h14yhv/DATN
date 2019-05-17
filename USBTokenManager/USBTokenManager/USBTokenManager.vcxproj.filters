@@ -30,6 +30,9 @@
     <ClCompile Include="Md5.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="FormInfo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="USBTokenManagerForm.h">
@@ -45,6 +48,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Md5.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FormInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

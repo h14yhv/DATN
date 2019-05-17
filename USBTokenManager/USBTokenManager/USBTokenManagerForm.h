@@ -4,9 +4,12 @@
 #include "string.h"
 #include <vcclr.h>
 #include "Md5.h"
+#include "FormInfo.h"
 
 using namespace std;
 using namespace System::Runtime::InteropServices;
+using namespace System;
+using namespace System::Security::Cryptography;
 
 extern DEVICE_DATA g_DeviceData;
 
@@ -260,7 +263,7 @@ namespace USBTokenManager {
 			this->btnWriteSignature->Name = L"btnWriteSignature";
 			this->btnWriteSignature->Size = System::Drawing::Size(128, 31);
 			this->btnWriteSignature->TabIndex = 16;
-			this->btnWriteSignature->Text = L"Write Signature";
+			this->btnWriteSignature->Text = L"New Signature";
 			this->btnWriteSignature->UseVisualStyleBackColor = true;
 			this->btnWriteSignature->Click += gcnew System::EventHandler(this, &USBTokenManagerForm::btnWriteSignature_Click);
 			// 
@@ -337,6 +340,7 @@ namespace USBTokenManager {
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(8, 16);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
+			this->AutoSize = true;
 			this->ClientSize = System::Drawing::Size(691, 474);
 			this->Controls->Add(this->btnExit);
 			this->Controls->Add(this->grbSignature);
@@ -403,6 +407,12 @@ namespace USBTokenManager {
 	{
 		String^ strPassword = tbPINCode->Text;
 		tbPINCode->ResetText();
+
+		btnSetPIN->Enabled = TRUE;
+		btnResetPIN->Enabled = TRUE;
+		btnReadSignature->Enabled = TRUE;
+		btnWriteSignature->Enabled = TRUE;
+
 		BOOL bResult = TRUE;
 		if (strPassword->Length == 0)
 		{
@@ -418,10 +428,12 @@ namespace USBTokenManager {
 			btnWriteSignature->Enabled = FALSE;
 			btnSetPIN->Enabled = FALSE;
 			btnResetPIN->Enabled = FALSE;
+
 			MessageBox::Show(L"Authenticate PIN Failed");
 			Marshal::FreeHGlobal((IntPtr)szPassword);
 			return;
 		}
+
 		btnSetPIN->Enabled = TRUE;
 		btnResetPIN->Enabled = TRUE;
 		btnReadSignature->Enabled = TRUE;
@@ -468,6 +480,16 @@ namespace USBTokenManager {
 
 	private: System::Void btnWriteSignature_Click(System::Object^  sender, System::EventArgs^  e)
 	{
+		RSACryptoServiceProvider^ RSA = gcnew RSACryptoServiceProvider(2048);
+
+		RSAParameters RSAKeyInfo = RSA->ExportParameters(true);
+
+		FormInfo^ Form2 = gcnew FormInfo();
+		Form2->ShowDialog();
+		
+		DebugPrint("Private Key: %s", RSAKeyInfo.D);
+		DebugPrint("Public Key: %s", RSAKeyInfo.Modulus);
+
 		String^ strSignature = tbWriteSignature->Text;
 		PCHAR szSignature = NULL;
 		tbWriteSignature->ResetText();
