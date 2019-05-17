@@ -14,10 +14,10 @@
  *----------------------------------------------------------------------------*/
 
 #include <LPC23xx.H> /* LPC23xx/LPC24xx definitions */
-
 #include "demo.h"
 #include "LCD.h"
 #include "Flash.h"
+#include "FlashOS.h"
 
 #define DEBUG
 
@@ -120,10 +120,20 @@ int main(void)
 	iState = 0; // Unauthenticated
 
 	// Init(0x00058000,4000000,2); //4096000
+	
+//	Init(0x000258000,4000000,2);
+	ProgramPage(0x00058000, 256 , (U8 *)szPath);
+	
+	flash_read(0x00058000, (U8 *)read, 256);
+	if (bStatus == 1)
+	{
+		lcd_print("Read failed");
+		printf("\nRead failed");
+	}
 
-	//Init(0x00058000,4096000,2);
+	printf("\nRead: %s", read);
 
-	__disable_irq();
+/*	__disable_irq();
 
 	printf("\nBuffer write: %s", szPath);
 	bStatus = flash_write(0x00058000, (U8 *)szPath);
@@ -143,7 +153,7 @@ int main(void)
 	printf("\nRead: %s", read);
 
 	__enable_irq();
-
+*/
 	while (1)
 	{
 		BOOL bStatus = __TRUE;

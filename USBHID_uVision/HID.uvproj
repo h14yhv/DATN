@@ -451,16 +451,6 @@
               <FileType>5</FileType>
               <FilePath>.\demo.h</FilePath>
             </File>
-            <File>
-              <FileName>Flash.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Flash.c</FilePath>
-            </File>
-            <File>
-              <FileName>Flash.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Flash.h</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>
@@ -520,6 +510,21 @@
               <FileName>usbhw.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\usbhw.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Flash</GroupName>
+          <Files>
+            <File>
+              <FileName>FlashOS.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\FlashOS.h</FilePath>
+            </File>
+            <File>
+              <FileName>FlashPrg.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\FlashPrg.c</FilePath>
             </File>
           </Files>
         </Group>

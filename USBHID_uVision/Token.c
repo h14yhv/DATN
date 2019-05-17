@@ -1,6 +1,7 @@
 #include "type.h"
 #include "demo.h"
 #include "Flash.h"
+#include "FlashOS.h"
 
 #define DEBUG
 
@@ -156,7 +157,8 @@ BOOL SetPassword()
 	memset(&RomHeader, 0x00, sizeof(RomHeader));
 	printf("Password Hashed: %s",aAuthenticatePacket.Password );
 	
-	bStatus =  flash_write(PASSWORD_ADDR_IN_FLASH, aAuthenticatePacket.Password);
+//	bStatus =  flash_write(PASSWORD_ADDR_IN_FLASH, aAuthenticatePacket.Password);
+	bStatus = ProgramPage(PASSWORD_ADDR_IN_FLASH, 0, aAuthenticatePacket.Password);
 	if(bStatus == 1)
 	{
 		printf("Write to flash failed");
@@ -204,7 +206,8 @@ BOOL WriteRequest()
 	printf("\r\nSignature: %d Size: %d Offset:%d", aDataPacket.iIndex, aDataPacket.iLen, aDataPacket.iOffset);
 	if (aDataPacket.iOffset + MAX_PACKET_SIZE >= BioSign.iSize) // Enough signature
 	{
-		flash_write(SIGNATURE_ADDR_IN_FLASH, BioSign.aData);
+			ProgramPage(SIGNATURE_ADDR_IN_FLASH, 0, BioSign.aData);
+//		flash_write(SIGNATURE_ADDR_IN_FLASH, BioSign.aData);
 //						WriteSignature(aDataPacket.iIndex,&BioSign);
 #ifdef DEBUG
 		printf("\r\nBioSignature %d received complete, %d bytes written", aDataPacket.iIndex, aDataPacket.iLen);
