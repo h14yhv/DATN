@@ -38,16 +38,6 @@ typedef struct _DEVICE_DATA {
 	UCHAR					uInterruptPipeId;
 } DEVICE_DATA, *PDEVICE_DATA;
 
-// typedef enum _CMD
-// {
-// 	SET_PASSWORD = 1,
-// 	READ_REQUEST,
-// 	WRITE_REQUEST,
-// 	GET_INFO,
-// 	AUTHENTICATE,
-// 	//	USB_CMD_ACK
-// }CMD, *PCMD;
-
 enum USB_CMD
 {
 	USB_CMD_READ = 0x01,
@@ -67,7 +57,7 @@ enum USB_CMD
 #define MAX_DATA_SIGN_SIZE		  	58
 #define MAX_SIGNATURE_SIZE			0x4000
 
-typedef struct _DATA_PACKET
+typedef struct _SIGN_MESSAGE
 {
 	BYTE   iCmd;
 	BYTE   iIndex;  //Index of signature to process, ignore for 2,3,4 command
@@ -76,7 +66,7 @@ typedef struct _DATA_PACKET
 	BYTE   SignData[MAX_DATA_SIGN_SIZE];
 } SIGN_MESSAGE , *PSIGN_MESSAGE;
 
-typedef struct _AUTHENTICATE_PACKET   //??? need more consideration
+typedef struct _AUTHENTICATE_PACKET   
 {
 	BYTE	Username[USERNAME_SIZE];
 	BYTE	Password[PASSWORD_SIZE];

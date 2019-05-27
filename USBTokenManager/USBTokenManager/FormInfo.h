@@ -1,5 +1,17 @@
 #pragma once
 
+#include "Common.h"
+#include "device.h"
+#include <vcclr.h>
+
+using namespace System;
+using namespace System::Security::Cryptography;
+using namespace std;
+using namespace System::Runtime::InteropServices;
+using namespace System::Text;
+using namespace System::IO;
+
+
 namespace USBTokenManager {
 
 	using namespace System;
@@ -61,6 +73,7 @@ namespace USBTokenManager {
 		/// </summary>
 		void InitializeComponent(void)
 		{
+			System::ComponentModel::ComponentResourceManager^  resources = (gcnew System::ComponentModel::ComponentResourceManager(FormInfo::typeid));
 			this->grbDevice = (gcnew System::Windows::Forms::GroupBox());
 			this->btnExit = (gcnew System::Windows::Forms::Button());
 			this->btnCreateSignature = (gcnew System::Windows::Forms::Button());
@@ -84,7 +97,7 @@ namespace USBTokenManager {
 			this->grbDevice->Size = System::Drawing::Size(387, 158);
 			this->grbDevice->TabIndex = 14;
 			this->grbDevice->TabStop = false;
-			this->grbDevice->Text = L"Device";
+			this->grbDevice->Text = L"Account";
 			// 
 			// btnExit
 			// 
@@ -104,6 +117,7 @@ namespace USBTokenManager {
 			this->btnCreateSignature->TabIndex = 11;
 			this->btnCreateSignature->Text = L"Create Signature";
 			this->btnCreateSignature->UseVisualStyleBackColor = true;
+			this->btnCreateSignature->Click += gcnew System::EventHandler(this, &FormInfo::btnCreateSignature_Click);
 			// 
 			// lblUserName
 			// 
@@ -146,8 +160,9 @@ namespace USBTokenManager {
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->ClientSize = System::Drawing::Size(407, 180);
 			this->Controls->Add(this->grbDevice);
+			this->Icon = (cli::safe_cast<System::Drawing::Icon^>(resources->GetObject(L"$this.Icon")));
 			this->Name = L"FormInfo";
-			this->Text = L"FormInfo";
+			this->Text = L"USBTokenManager";
 			this->grbDevice->ResumeLayout(false);
 			this->grbDevice->PerformLayout();
 			this->ResumeLayout(false);
@@ -156,8 +171,53 @@ namespace USBTokenManager {
 #pragma endregion
 	private: System::Void tbUserName_TextChanged(System::Object^  sender, System::EventArgs^  e) {
 	}
-private: System::Void btnExit_Click(System::Object^  sender, System::EventArgs^  e) {
-	this->Close();
-}
-};
+	private: System::Void btnExit_Click(System::Object^  sender, System::EventArgs^  e) {
+		this->Close();
+	}
+	private: System::Void btnCreateSignature_Click(System::Object^  sender, System::EventArgs^  e)
+	{
+		BOOL bResult = TRUE;
+
+		String^ strUserName = tbUserName->Text;
+		tbUserName->ResetText();
+		if (strUserName->Length == 0)
+		{
+			MessageBox::Show(L"UserName Empty");
+			return;
+		}
+
+		String^ strPassword = tbPassword->Text;
+		tbPassword->ResetText();
+		if (strPassword->Length == 0)
+		{
+			MessageBox::Show(L"Password Empty");
+			return;
+		}
+
+		RSACryptoServiceProvider^ RSA = gcnew RSACryptoServiceProvider(2048);
+		RSAParameters RSAKeyInfo = RSA->ExportParameters(true);
+
+		DebugPrint("Private Key: %s", RSAKeyInfo.D);
+		DebugPrint("Public Key: %s", RSAKeyInfo.Modulus);
+
+		String^ strModulus = System::Convert::ToBase64String(RSAKeyInfo.Modulus);
+		PCHAR szSignature = NULL;
+
+		szSignature = (PCHAR)Marshal::StringToHGlobalAnsi(strModulus).ToPointer();
+		DebugPrint("szSignature: %s", szSignature);
+
+		bResult = WriteSignature((PBYTE)szSignature, 256);
+		if (!bResult)
+		{
+			MessageBox::Show(L"Write Signature To Device Failed");
+			Marshal::FreeHGlobal((IntPtr)szSignature);
+			return;
+		}
+		MessageBox::Show(L"Write Signature To Device Successfully");
+		Marshal::FreeHGlobal((IntPtr)szSignature);
+
+		return;
+
+	}
+	};
 }

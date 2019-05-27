@@ -55,7 +55,7 @@ namespace USBTokenManager {
 
 	protected:
 
-	private: System::Windows::Forms::Button^  btnResetPIN;
+
 
 	private: System::Windows::Forms::Button^  btnSetPIN;
 
@@ -104,7 +104,6 @@ namespace USBTokenManager {
 			System::ComponentModel::ComponentResourceManager^  resources = (gcnew System::ComponentModel::ComponentResourceManager(USBTokenManagerForm::typeid));
 			this->grbDevice = (gcnew System::Windows::Forms::GroupBox());
 			this->btnAuthenticate = (gcnew System::Windows::Forms::Button());
-			this->btnResetPIN = (gcnew System::Windows::Forms::Button());
 			this->btnSetPIN = (gcnew System::Windows::Forms::Button());
 			this->lblPINCode = (gcnew System::Windows::Forms::Label());
 			this->tbPINCode = (gcnew System::Windows::Forms::TextBox());
@@ -130,7 +129,6 @@ namespace USBTokenManager {
 			// grbDevice
 			// 
 			this->grbDevice->Controls->Add(this->btnAuthenticate);
-			this->grbDevice->Controls->Add(this->btnResetPIN);
 			this->grbDevice->Controls->Add(this->btnSetPIN);
 			this->grbDevice->Controls->Add(this->lblPINCode);
 			this->grbDevice->Controls->Add(this->tbPINCode);
@@ -146,31 +144,20 @@ namespace USBTokenManager {
 			// 
 			// btnAuthenticate
 			// 
-			this->btnAuthenticate->Location = System::Drawing::Point(331, 59);
+			this->btnAuthenticate->Location = System::Drawing::Point(512, 64);
 			this->btnAuthenticate->Name = L"btnAuthenticate";
-			this->btnAuthenticate->Size = System::Drawing::Size(142, 32);
+			this->btnAuthenticate->Size = System::Drawing::Size(128, 32);
 			this->btnAuthenticate->TabIndex = 11;
 			this->btnAuthenticate->Text = L"Authenticate PIN";
 			this->btnAuthenticate->UseVisualStyleBackColor = true;
 			this->btnAuthenticate->Click += gcnew System::EventHandler(this, &USBTokenManagerForm::btnAuthenticate_Click);
 			// 
-			// btnResetPIN
-			// 
-			this->btnResetPIN->Enabled = false;
-			this->btnResetPIN->Location = System::Drawing::Point(512, 58);
-			this->btnResetPIN->Name = L"btnResetPIN";
-			this->btnResetPIN->Size = System::Drawing::Size(116, 81);
-			this->btnResetPIN->TabIndex = 10;
-			this->btnResetPIN->Text = L"Reset PIN";
-			this->btnResetPIN->UseVisualStyleBackColor = true;
-			this->btnResetPIN->Click += gcnew System::EventHandler(this, &USBTokenManagerForm::btnResetPIN_Click);
-			// 
 			// btnSetPIN
 			// 
 			this->btnSetPIN->Enabled = false;
-			this->btnSetPIN->Location = System::Drawing::Point(331, 117);
+			this->btnSetPIN->Location = System::Drawing::Point(512, 117);
 			this->btnSetPIN->Name = L"btnSetPIN";
-			this->btnSetPIN->Size = System::Drawing::Size(142, 30);
+			this->btnSetPIN->Size = System::Drawing::Size(128, 30);
 			this->btnSetPIN->TabIndex = 9;
 			this->btnSetPIN->Text = L"Set PIN";
 			this->btnSetPIN->UseVisualStyleBackColor = true;
@@ -187,10 +174,10 @@ namespace USBTokenManager {
 			// 
 			// tbPINCode
 			// 
-			this->tbPINCode->Location = System::Drawing::Point(128, 59);
+			this->tbPINCode->Location = System::Drawing::Point(144, 59);
 			this->tbPINCode->Name = L"tbPINCode";
 			this->tbPINCode->PasswordChar = '*';
-			this->tbPINCode->Size = System::Drawing::Size(118, 22);
+			this->tbPINCode->Size = System::Drawing::Size(303, 22);
 			this->tbPINCode->TabIndex = 8;
 			// 
 			// cbbListDevice
@@ -204,10 +191,10 @@ namespace USBTokenManager {
 			// 
 			// tbNewPINCode
 			// 
-			this->tbNewPINCode->Location = System::Drawing::Point(128, 117);
+			this->tbNewPINCode->Location = System::Drawing::Point(144, 117);
 			this->tbNewPINCode->Name = L"tbNewPINCode";
 			this->tbNewPINCode->PasswordChar = '*';
-			this->tbNewPINCode->Size = System::Drawing::Size(118, 22);
+			this->tbNewPINCode->Size = System::Drawing::Size(303, 22);
 			this->tbNewPINCode->TabIndex = 6;
 			// 
 			// lblNewPinCode
@@ -405,14 +392,12 @@ namespace USBTokenManager {
 
 	private: System::Void btnAuthenticate_Click(System::Object^  sender, System::EventArgs^  e)
 	{
-		String^ strPassword = tbPINCode->Text;
-		tbPINCode->ResetText();
-
 		btnSetPIN->Enabled = TRUE;
-		btnResetPIN->Enabled = TRUE;
 		btnReadSignature->Enabled = TRUE;
 		btnWriteSignature->Enabled = TRUE;
 
+		String^ strPassword = tbPINCode->Text;
+		tbPINCode->ResetText();
 		BOOL bResult = TRUE;
 		if (strPassword->Length == 0)
 		{
@@ -427,7 +412,6 @@ namespace USBTokenManager {
 			btnReadSignature->Enabled = FALSE;
 			btnWriteSignature->Enabled = FALSE;
 			btnSetPIN->Enabled = FALSE;
-			btnResetPIN->Enabled = FALSE;
 
 			MessageBox::Show(L"Authenticate PIN Failed");
 			Marshal::FreeHGlobal((IntPtr)szPassword);
@@ -435,7 +419,6 @@ namespace USBTokenManager {
 		}
 
 		btnSetPIN->Enabled = TRUE;
-		btnResetPIN->Enabled = TRUE;
 		btnReadSignature->Enabled = TRUE;
 		btnWriteSignature->Enabled = TRUE;
 		Marshal::FreeHGlobal((IntPtr)szPassword);
@@ -480,16 +463,9 @@ namespace USBTokenManager {
 
 	private: System::Void btnWriteSignature_Click(System::Object^  sender, System::EventArgs^  e)
 	{
-		RSACryptoServiceProvider^ RSA = gcnew RSACryptoServiceProvider(2048);
-
-		RSAParameters RSAKeyInfo = RSA->ExportParameters(true);
-
 		FormInfo^ Form2 = gcnew FormInfo();
 		Form2->ShowDialog();
 		
-		DebugPrint("Private Key: %s", RSAKeyInfo.D);
-		DebugPrint("Public Key: %s", RSAKeyInfo.Modulus);
-
 		String^ strSignature = tbWriteSignature->Text;
 		PCHAR szSignature = NULL;
 		tbWriteSignature->ResetText();
@@ -499,8 +475,8 @@ namespace USBTokenManager {
 			MessageBox::Show(L"Signature Empty");
 			return;
 		}
-		szSignature = (PCHAR)Marshal::StringToHGlobalAnsi(strSignature).ToPointer();
 
+		szSignature = (PCHAR)Marshal::StringToHGlobalAnsi(strSignature).ToPointer();
 		bResult = WriteSignature((PBYTE)szSignature, (USHORT)strlen(szSignature));
 		if (!bResult)
 		{

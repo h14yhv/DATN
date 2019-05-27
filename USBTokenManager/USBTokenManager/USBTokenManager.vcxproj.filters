@@ -58,8 +58,8 @@
     <EmbeddedResource Include="USBTokenManagerForm.resx">
       <Filter>Resource Files</Filter>
     </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\Release\ucrtbased.dll" />
+    <EmbeddedResource Include="FormInfo.resx">
+      <Filter>Resource Files</Filter>
+    </EmbeddedResource>
   </ItemGroup>
 </Project>
