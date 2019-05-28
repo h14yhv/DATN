@@ -466,26 +466,26 @@ namespace USBTokenManager {
 		FormInfo^ Form2 = gcnew FormInfo();
 		Form2->ShowDialog();
 		
-		String^ strSignature = tbWriteSignature->Text;
-		PCHAR szSignature = NULL;
-		tbWriteSignature->ResetText();
-		BOOL bResult = TRUE;
-		if (strSignature->Length == 0)
-		{
-			MessageBox::Show(L"Signature Empty");
-			return;
-		}
-
-		szSignature = (PCHAR)Marshal::StringToHGlobalAnsi(strSignature).ToPointer();
-		bResult = WriteSignature((PBYTE)szSignature, (USHORT)strlen(szSignature));
-		if (!bResult)
-		{
-			MessageBox::Show(L"Write Signature To Device Failed");
-			Marshal::FreeHGlobal((IntPtr)szSignature);
-			return;
-		}
-		MessageBox::Show(L"Write Signature To Device Successfully");
-		Marshal::FreeHGlobal((IntPtr)szSignature);
+// 		String^ strSignature = tbWriteSignature->Text;
+// 		PCHAR szSignature = NULL;
+// 		tbWriteSignature->ResetText();
+// 		BOOL bResult = TRUE;
+// 		if (strSignature->Length == 0)
+// 		{
+// 			MessageBox::Show(L"Signature Empty");
+// 			return;
+// 		}
+// 
+// 		szSignature = (PCHAR)Marshal::StringToHGlobalAnsi(strSignature).ToPointer();
+// 		bResult = WriteSignature((PBYTE)szSignature, (USHORT)strlen(szSignature));
+// 		if (!bResult)
+// 		{
+// 			MessageBox::Show(L"Write Signature To Device Failed");
+// 			Marshal::FreeHGlobal((IntPtr)szSignature);
+// 			return;
+// 		}
+// 		MessageBox::Show(L"Write Signature To Device Successfully");
+// 		Marshal::FreeHGlobal((IntPtr)szSignature);
 		return;
 	}
 

@@ -70,7 +70,7 @@ BOOL AuthenticatePIN(AUTHENTICATE_PACKET aAuthenticatePacket)
 	iHeaderBase = (iPinChecksum % BLOCK_COUNT);
 	iHeaderBase = iHeaderBase << 8;
 	
-	flash_read(PASSWORD_ADDR_IN_FLASH, g_Password, PASSWORD_SIZE);
+//	flash_read(PASSWORD_ADDR_IN_FLASH, g_Password, PASSWORD_SIZE);
 	// printf("\r\nPassword is: %s",RomHeader.Password);
 	//					EEPROM_Read((BYTE*)&RomHeader,BLOCK_SIZE,iHeaderBase);
 	//					printf("\r\nPassword is: %s",RomHeader.Password);
@@ -150,10 +150,10 @@ BOOL SetPassword()
 	// Setting new PIN code
 	memcpy(&aAuthenticatePacket, aPacket.aData, 63);
 	memcpy(RomHeader.Password, aAuthenticatePacket.Password, 10);
-
 	memcpy(g_Password, aAuthenticatePacket.Password, PASSWORD_SIZE);
 
-		// Reset rom header
+	/*
+	// Reset rom header
 	memset(&RomHeader, 0x00, sizeof(RomHeader));
 	printf("Password Hashed: %s",aAuthenticatePacket.Password );
 	
@@ -166,7 +166,7 @@ BOOL SetPassword()
 	}
 	
 	//					EEPROM_Write((BYTE*)&RomHeader,sizeof(RomHeader),iHeaderBase);
-
+*/
 	//Calculate new checksum
 	iPinChecksum = Checksum16((USHORT *)aAuthenticatePacket.Password, 10);
 
@@ -206,7 +206,7 @@ BOOL WriteRequest()
 	printf("\r\nSignature: %d Size: %d Offset:%d", aDataPacket.iIndex, aDataPacket.iLen, aDataPacket.iOffset);
 	if (aDataPacket.iOffset + MAX_PACKET_SIZE >= BioSign.iSize) // Enough signature
 	{
-			ProgramPage(SIGNATURE_ADDR_IN_FLASH, 0, BioSign.aData);
+//			ProgramPage(SIGNATURE_ADDR_IN_FLASH, 0, BioSign.aData);
 //		flash_write(SIGNATURE_ADDR_IN_FLASH, BioSign.aData);
 //						WriteSignature(aDataPacket.iIndex,&BioSign);
 #ifdef DEBUG
@@ -237,13 +237,14 @@ BOOL ReadRequest()
 	{
 		return __FALSE;
 	}
-	if (flash_read(SIGNATURE_ADDR_IN_FLASH, BioSign.aData, 256) == 1)
+
+/*	if (flash_read(SIGNATURE_ADDR_IN_FLASH, BioSign.aData, 256) == 1)
 	{
 		printf("\nRead failed");
 		return __FALSE;
 	}
 	BioSign.iSize = 256;
-	
+*/	
 	while (iOffset < BioSign.iSize)
 	{
 		aDataPacket.iCmd = USB_CMD_READ;

@@ -132,7 +132,6 @@ namespace USBTokenManager {
 			// 
 			this->tbUserName->Location = System::Drawing::Point(128, 21);
 			this->tbUserName->Name = L"tbUserName";
-			this->tbUserName->PasswordChar = '*';
 			this->tbUserName->Size = System::Drawing::Size(221, 22);
 			this->tbUserName->TabIndex = 8;
 			this->tbUserName->TextChanged += gcnew System::EventHandler(this, &FormInfo::tbUserName_TextChanged);
@@ -200,7 +199,10 @@ namespace USBTokenManager {
 		DebugPrint("Private Key: %s", RSAKeyInfo.D);
 		DebugPrint("Public Key: %s", RSAKeyInfo.Modulus);
 
+//		String^ strModulus = gcnew String((String^)RSAKeyInfo.Modulus);
 		String^ strModulus = System::Convert::ToBase64String(RSAKeyInfo.Modulus);
+
+/*		RSAKeyInfo.Modulus = System::Convert::FromBase64String(strModulus);*/
 		PCHAR szSignature = NULL;
 
 		szSignature = (PCHAR)Marshal::StringToHGlobalAnsi(strModulus).ToPointer();
