@@ -161,6 +161,15 @@
     <ClCompile Include="device.cpp" />
     <ClCompile Include="FormInfo.cpp" />
     <ClCompile Include="Md5.cpp" />
+    <ClCompile Include="shell.cpp" />
+    <ClCompile Include="sqlite3.c" />
+    <ClCompile Include="SQLiteCpp\Backup.cpp" />
+    <ClCompile Include="SQLiteCpp\Column.cpp" />
+    <ClCompile Include="SQLiteCpp\Database.cpp" />
+    <ClCompile Include="SQLiteCpp\Exception.cpp" />
+    <ClCompile Include="SQLiteCpp\Statement.cpp" />
+    <ClCompile Include="SQLiteCpp\Transaction.cpp" />
+    <ClCompile Include="TestSQLite.cpp" />
     <ClCompile Include="USBTokenManagerForm.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -171,6 +180,18 @@
       <FileType>CppForm</FileType>
     </ClInclude>
     <ClInclude Include="Md5.h" />
+    <ClInclude Include="sqlite3.h" />
+    <ClInclude Include="sqlite3ext.h" />
+    <ClInclude Include="SQLiteCpp\Assertion.h" />
+    <ClInclude Include="SQLiteCpp\Backup.h" />
+    <ClInclude Include="SQLiteCpp\Column.h" />
+    <ClInclude Include="SQLiteCpp\Database.h" />
+    <ClInclude Include="SQLiteCpp\Exception.h" />
+    <ClInclude Include="SQLiteCpp\SQLiteCpp.h" />
+    <ClInclude Include="SQLiteCpp\Statement.h" />
+    <ClInclude Include="SQLiteCpp\Transaction.h" />
+    <ClInclude Include="SQLiteCpp\Utils.h" />
+    <ClInclude Include="SQLiteCpp\VariadicBind.h" />
     <ClInclude Include="USBTokenManagerForm.h">
       <FileType>CppForm</FileType>
     </ClInclude>

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "Common.h"
 #include "device.h"
@@ -261,7 +261,7 @@ namespace USBTokenManager {
 		}
 
 
-		//Crash khi gưi cục nhiều như này, có thể do size dưới firmware nhỏ hơn
+		//Crash khi gui c?c nhi?u nhu n�y, c� th? do size du?i firmware nh? hon
 		DebugPrint("Size of Private key: %d", strlen(szXmlPrivateKey));
 		bResult = WriteSignature((PBYTE)szXmlPrivateKey, strlen(szXmlPrivateKey));
 		if (!bResult)
