@@ -268,7 +268,7 @@ namespace USBTokenManager {
 			this->btnReadSignature->Name = L"btnReadSignature";
 			this->btnReadSignature->Size = System::Drawing::Size(128, 31);
 			this->btnReadSignature->TabIndex = 13;
-			this->btnReadSignature->Text = L"Read Signature";
+			this->btnReadSignature->Text = L"Sign File";
 			this->btnReadSignature->UseVisualStyleBackColor = true;
 			this->btnReadSignature->Click += gcnew System::EventHandler(this, &USBTokenManagerForm::btnReadSignature_Click);
 			// 
@@ -524,6 +524,14 @@ namespace USBTokenManager {
 			String^ FileName = openFileDialogSign->FileName;
 			tbFileName->Text = FileName;
 		}
+
+		String^ fileName = openFileDialogSign->FileName;
+		FileStream^ stream = System::IO::File::OpenRead(fileName);
+
+		SHA256Managed^ sha = gcnew SHA256Managed();
+
+		cli::array<unsigned char>^ hash = sha->ComputeHash(stream);
+
 		return;
 	}
 

@@ -194,29 +194,26 @@ namespace USBTokenManager {
 		}
 
 		RSACryptoServiceProvider^ RSA = gcnew RSACryptoServiceProvider(2048);
-		RSAParameters RSAKeyInfo = RSA->ExportParameters(true);
+		String^ RSAPubLicKey = RSA->ToXmlString(FALSE);
+		String^ RSAPrivateKey = RSA->ToXmlString(TRUE);
 
-		DebugPrint("Private Key: %s", RSAKeyInfo.D);
-		DebugPrint("Public Key: %s", RSAKeyInfo.Modulus);
+		DebugPrint("Private Key: %s", RSAPrivateKey);
+		DebugPrint("Public Key: %s", RSAPubLicKey);
 
-//		String^ strModulus = gcnew String((String^)RSAKeyInfo.Modulus);
-		String^ strModulus = System::Convert::ToBase64String(RSAKeyInfo.Modulus);
+		PCHAR szXmlPrivateKey = NULL;
+		szXmlPrivateKey = (PCHAR)Marshal::StringToHGlobalAnsi(RSAPrivateKey).ToPointer();
+		DebugPrint("szSignature: %s", szXmlPrivateKey);
 
-/*		RSAKeyInfo.Modulus = System::Convert::FromBase64String(strModulus);*/
-		PCHAR szSignature = NULL;
-
-		szSignature = (PCHAR)Marshal::StringToHGlobalAnsi(strModulus).ToPointer();
-		DebugPrint("szSignature: %s", szSignature);
-
-		bResult = WriteSignature((PBYTE)szSignature, 256);
+		bResult = WriteSignature((PBYTE)szXmlPrivateKey, sizeof(szXmlPrivateKey));
 		if (!bResult)
 		{
 			MessageBox::Show(L"Write Signature To Device Failed");
-			Marshal::FreeHGlobal((IntPtr)szSignature);
+			Marshal::FreeHGlobal((IntPtr)szXmlPrivateKey);
 			return;
 		}
+
 		MessageBox::Show(L"Write Signature To Device Successfully");
-		Marshal::FreeHGlobal((IntPtr)szSignature);
+		Marshal::FreeHGlobal((IntPtr)szXmlPrivateKey);
 
 		return;
 
