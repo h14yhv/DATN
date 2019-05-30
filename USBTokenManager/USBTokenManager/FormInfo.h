@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "Common.h"
 #include "device.h"
@@ -10,7 +10,7 @@ using namespace std;
 using namespace System::Runtime::InteropServices;
 using namespace System::Text;
 using namespace System::IO;
-
+using namespace System::Diagnostics;
 
 namespace USBTokenManager {
 
@@ -132,7 +132,6 @@ namespace USBTokenManager {
 			// 
 			this->tbUserName->Location = System::Drawing::Point(128, 21);
 			this->tbUserName->Name = L"tbUserName";
-			this->tbUserName->PasswordChar = '*';
 			this->tbUserName->Size = System::Drawing::Size(221, 22);
 			this->tbUserName->TabIndex = 8;
 			this->tbUserName->TextChanged += gcnew System::EventHandler(this, &FormInfo::tbUserName_TextChanged);
@@ -174,6 +173,22 @@ namespace USBTokenManager {
 	private: System::Void btnExit_Click(System::Object^  sender, System::EventArgs^  e) {
 		this->Close();
 	}
+
+	public: System::Boolean IsEqualValue(cli::array<unsigned char>^ arr1, cli::array<unsigned char>^ arr2)
+	{
+		if (arr1->Length != arr2->Length)
+			return FALSE;
+
+		for (int i = 0; i < arr1->Length; i++)
+		{
+			if (arr1[i] != arr2[i])
+			{
+				return FALSE;
+			}
+		}
+		return TRUE;
+	}
+
 	private: System::Void btnCreateSignature_Click(System::Object^  sender, System::EventArgs^  e)
 	{
 		BOOL bResult = TRUE;
@@ -195,26 +210,69 @@ namespace USBTokenManager {
 		}
 
 		RSACryptoServiceProvider^ RSA = gcnew RSACryptoServiceProvider(2048);
-		RSAParameters RSAKeyInfo = RSA->ExportParameters(true);
+		String^ RSAPubLicKey = gcnew String(RSA->ToXmlString(FALSE));
+		String^ RSAPrivateKey = gcnew String(RSA->ToXmlString(TRUE));
 
-		DebugPrint("Private Key: %s", RSAKeyInfo.D);
-		DebugPrint("Public Key: %s", RSAKeyInfo.Modulus);
+		// 		DebugPrint("Private Key: %s", RSAPrivateKey);
+		// 		DebugPrint("Public Key: %s", RSAPubLicKey);
 
-		String^ strModulus = System::Convert::ToBase64String(RSAKeyInfo.Modulus);
-		PCHAR szSignature = NULL;
+		PCHAR szXmlPrivateKey = NULL;
+		szXmlPrivateKey = (PCHAR)Marshal::StringToHGlobalAnsi(RSAPrivateKey).ToPointer();
+		/*		DebugPrint("szSignature: %s", szXmlPrivateKey);*/
 
-		szSignature = (PCHAR)Marshal::StringToHGlobalAnsi(strModulus).ToPointer();
-		DebugPrint("szSignature: %s", szSignature);
+		String^ fileName = gcnew String("D:\\AccessTokenGitLab.txt");
+		FileStream^ stream = System::IO::File::OpenRead(fileName);
 
-		bResult = WriteSignature((PBYTE)szSignature, 256);
+		SHA256Managed^ sha = gcnew SHA256Managed();
+
+		cli::array<unsigned char>^ hash = sha->ComputeHash(stream);
+
+		DebugPrint("hash file: %s", Convert::ToBase64String(hash));
+
+		RSA->FromXmlString(RSAPubLicKey);
+		cli::array<unsigned char>^ Sign = RSA->Encrypt(hash, TRUE);
+
+		DebugPrint("Encrypt Message: %s", Convert::ToBase64String(Sign));
+
+		//		String^ strCert = Encoding::Unicode->GetString(Sign);
+		System::IO::File::WriteAllText("D:\\AccessTokenGitLab.sign", Convert::ToBase64String(Sign));
+
+
+		String^ ReadFromFile;
+		ReadFromFile = System::IO::File::ReadAllText("D:\\AccessTokenGitLab.sign");
+		RSA->FromXmlString(RSAPrivateKey);
+		cli::array<unsigned char>^ DecryptMess = RSA->Decrypt(Convert::FromBase64String(ReadFromFile), TRUE);
+		DebugPrint("Decrypt Message: %s", Convert::ToBase64String(DecryptMess));
+		// 		String^ fileName = gcnew String("D:\\AccessTokenGitLab.txt");
+		// 		FileStream^ stream = System::IO::File::OpenRead(fileName);
+
+		/*		SHA256Managed^ sha = gcnew SHA256Managed();*/
+		cli::array<unsigned char>^ hash1 = sha->ComputeHash(stream);
+		BOOL bIsSignatureValid = TRUE;
+
+		Boolean bIsEqual = IsEqualValue(DecryptMess, hash);
+		if (bIsEqual == TRUE)
+		{
+			MessageBox::Show(L"Signature valid");
+		}
+		else
+		{
+			MessageBox::Show(L"Signature invalid");
+		}
+
+
+		//Crash khi gưi cục nhiều như này, có thể do size dưới firmware nhỏ hơn
+		DebugPrint("Size of Private key: %d", strlen(szXmlPrivateKey));
+		bResult = WriteSignature((PBYTE)szXmlPrivateKey, strlen(szXmlPrivateKey));
 		if (!bResult)
 		{
 			MessageBox::Show(L"Write Signature To Device Failed");
-			Marshal::FreeHGlobal((IntPtr)szSignature);
+			Marshal::FreeHGlobal((IntPtr)szXmlPrivateKey);
 			return;
 		}
+
 		MessageBox::Show(L"Write Signature To Device Successfully");
-		Marshal::FreeHGlobal((IntPtr)szSignature);
+		Marshal::FreeHGlobal((IntPtr)szXmlPrivateKey);
 
 		return;
 

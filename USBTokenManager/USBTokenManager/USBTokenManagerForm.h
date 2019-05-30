@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "device.h"
 #include "Common.h"
 #include "string.h"
@@ -250,7 +250,7 @@ namespace USBTokenManager {
 			this->btnWriteSignature->Name = L"btnWriteSignature";
 			this->btnWriteSignature->Size = System::Drawing::Size(128, 31);
 			this->btnWriteSignature->TabIndex = 16;
-			this->btnWriteSignature->Text = L"New Signature";
+			this->btnWriteSignature->Text = L"Create Signature";
 			this->btnWriteSignature->UseVisualStyleBackColor = true;
 			this->btnWriteSignature->Click += gcnew System::EventHandler(this, &USBTokenManagerForm::btnWriteSignature_Click);
 			// 
@@ -268,9 +268,9 @@ namespace USBTokenManager {
 			this->btnReadSignature->Name = L"btnReadSignature";
 			this->btnReadSignature->Size = System::Drawing::Size(128, 31);
 			this->btnReadSignature->TabIndex = 13;
-			this->btnReadSignature->Text = L"Read Signature";
+			this->btnReadSignature->Text = L"Sign File";
 			this->btnReadSignature->UseVisualStyleBackColor = true;
-			this->btnReadSignature->Click += gcnew System::EventHandler(this, &USBTokenManagerForm::btnReadSignature_Click);
+			this->btnReadSignature->Click += gcnew System::EventHandler(this, &USBTokenManagerForm::btnSignFile_Click);
 			// 
 			// tbReadSignature
 			// 
@@ -466,45 +466,93 @@ namespace USBTokenManager {
 		FormInfo^ Form2 = gcnew FormInfo();
 		Form2->ShowDialog();
 		
-		String^ strSignature = tbWriteSignature->Text;
-		PCHAR szSignature = NULL;
-		tbWriteSignature->ResetText();
-		BOOL bResult = TRUE;
-		if (strSignature->Length == 0)
-		{
-			MessageBox::Show(L"Signature Empty");
-			return;
-		}
-
-		szSignature = (PCHAR)Marshal::StringToHGlobalAnsi(strSignature).ToPointer();
-		bResult = WriteSignature((PBYTE)szSignature, (USHORT)strlen(szSignature));
-		if (!bResult)
-		{
-			MessageBox::Show(L"Write Signature To Device Failed");
-			Marshal::FreeHGlobal((IntPtr)szSignature);
-			return;
-		}
-		MessageBox::Show(L"Write Signature To Device Successfully");
-		Marshal::FreeHGlobal((IntPtr)szSignature);
+// 		String^ strSignature = tbWriteSignature->Text;
+// 		PCHAR szSignature = NULL;
+// 		tbWriteSignature->ResetText();
+// 		BOOL bResult = TRUE;
+// 		if (strSignature->Length == 0)
+// 		{
+// 			MessageBox::Show(L"Signature Empty");
+// 			return;
+// 		}
+// 
+// 		szSignature = (PCHAR)Marshal::StringToHGlobalAnsi(strSignature).ToPointer();
+// 		bResult = WriteSignature((PBYTE)szSignature, (USHORT)strlen(szSignature));
+// 		if (!bResult)
+// 		{
+// 			MessageBox::Show(L"Write Signature To Device Failed");
+// 			Marshal::FreeHGlobal((IntPtr)szSignature);
+// 			return;
+// 		}
+// 		MessageBox::Show(L"Write Signature To Device Successfully");
+// 		Marshal::FreeHGlobal((IntPtr)szSignature);
 		return;
 	}
 
-	private: System::Void btnReadSignature_Click(System::Object^  sender, System::EventArgs^  e)
+	private: System::Void btnSignFile_Click(System::Object^  sender, System::EventArgs^  e)
 	{
 		String^ strSignature = tbReadSignature->Text;
-		USHORT usSignatureSize = 0;
-		CHAR szSignature[MAX_SIGNATURE_SIZE] = { 0 };
+		USHORT usPrivateKeySize = 0;
+		CHAR szPrivateKey[MAX_SIGNATURE_SIZE] = { 0 };
 		tbReadSignature->ResetText();
 		BOOL bResult = TRUE;
 
-		bResult = ReadSignature((PBYTE)szSignature, &usSignatureSize);
-		if (bResult == FALSE || usSignatureSize == 0)
+		bResult = ReadSignature((PBYTE)szPrivateKey, &usPrivateKeySize);
+		if (bResult == FALSE || usPrivateKeySize == 0)
 		{
 			MessageBox::Show(L"Read Signature From Device Failed");
 			return;
 		}
 
-		String^ strName = gcnew String(szSignature);
+		FileStream^ stream;
+		try
+		{
+			stream = System::IO::File::OpenRead(tbFileName->Text);
+		}
+		catch (const std::exception&)
+		{
+			PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+			return;
+		}
+		
+		//Hash file with SHA256
+		SHA256Managed^ sha = gcnew SHA256Managed();
+		cli::array<unsigned char>^ strHashFile;
+		try
+		{
+			strHashFile = sha->ComputeHash(stream);
+		}
+		catch (const std::exception&)
+		{
+			PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+			return;
+		}
+		
+		DebugPrint("File Hashed: %s", Convert::ToBase64String(strHashFile));
+
+		//Lấy chữ ký từ thiết bị và tạo file lưu chữ ký
+		RSACryptoServiceProvider^ RSA = gcnew RSACryptoServiceProvider(2048);
+		String^ RSAPrivateKey = gcnew String(szPrivateKey);
+		RSA->FromXmlString(RSAPrivateKey);
+
+		cli::array<unsigned char>^ SignForFile;
+		try
+		{
+			SignForFile = RSA->Encrypt(strHashFile, TRUE);
+		}
+		catch (const std::exception&)
+		{
+			PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+			return;
+		}
+
+		DebugPrint("Encrypt Message: %s", Convert::ToBase64String(SignForFile));
+
+		//		String^ strCert = Encoding::Unicode->GetString(Sign);
+		System::IO::File::WriteAllText(tbFileName->Text + ".sign", Convert::ToBase64String(SignForFile));
+
+
+		String^ strName = gcnew String(szPrivateKey);
 		tbReadSignature->Text = strName;
 		return;
 	}
@@ -524,6 +572,14 @@ namespace USBTokenManager {
 			String^ FileName = openFileDialogSign->FileName;
 			tbFileName->Text = FileName;
 		}
+
+		String^ fileName = openFileDialogSign->FileName;
+		FileStream^ stream = System::IO::File::OpenRead(fileName);
+
+		SHA256Managed^ sha = gcnew SHA256Managed();
+
+		cli::array<unsigned char>^ hash = sha->ComputeHash(stream);
+
 		return;
 	}
 

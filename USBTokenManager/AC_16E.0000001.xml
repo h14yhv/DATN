@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<InvoiceDataXMLSign xmlns:inv="https://van.ehoadon.vn/invoicexml/v1">
+  <InvoiceDataXML>
+    <InvoiceData>
+      <InvoiceID>172</InvoiceID>
+      <InvoiceTypeName>Hóa đơn giá trị gia tăng</InvoiceTypeName>
+      <InvoiceForm>01GTKT0/002</InvoiceForm>
+      <InvoiceSerial>AC/16E</InvoiceSerial>
+      <InvoiceNo>0000001</InvoiceNo>
+      <InvoiceDate>2017-02-14T00:00:00</InvoiceDate>
+      <CreateDate>2017-02-14T15:46:43.337</CreateDate>
+      <LastUpdate>2017-02-14T15:46:43.337</LastUpdate>
+      <SumItemAmount>5676000</SumItemAmount>
+      <SumTaxAmount>567600</SumTaxAmount>
+      <SumDiscountAmount>0</SumDiscountAmount>
+      <SumPaymentAmount>6243600</SumPaymentAmount>
+      <OriginalInvoiceId>0</OriginalInvoiceId>
+      <SourceName>BTF - Bkav Template File (Hóa đơn được tạo bằng cách import dữ liệu từ file Excel có định dạng BTF)</SourceName>
+      <InvoiceStatusName>Mới tạo</InvoiceStatusName>
+      <OriginalInvoiceNo></OriginalInvoiceNo>
+      <BillCode>HD0000001</BillCode>
+      <Note></Note>
+      <UnitName>Công ty Cổ phần Công nghệ Thông tin Việt Tiến Mạnh</UnitName>
+      <UnitAddress>Tầng 5, Số 35 Phố Chùa Láng, Phường Láng Thượng, Quận Đống Đa, Thành Phố Hà Nội, Việt Nam</UnitAddress>
+      <TaxCode>0104848771</TaxCode>
+      <CertificateSerial>54081c7b22d34e1a1d90ee0d7f3cf0cf</CertificateSerial>
+      <UnitPersonRepresent>Đoàn Đức Tiến </UnitPersonRepresent>
+      <UnitPersonRepresentPosition>Chủ Tịch HĐQT</UnitPersonRepresentPosition>
+      <UnitEmail>thao-phuongnguyen@vtmgroup.com.vn</UnitEmail>
+      <UnitPhone>04 3259 5281</UnitPhone>
+      <BankAccount>0011003715249</BankAccount>
+      <BankName>VCB - Sở Giao Dịch</BankName>
+      <BuyerName>Cung Trọng Toàn</BuyerName>
+      <BuyerTaxCode>0304422444-014</BuyerTaxCode>
+      <BuyerUnitName>Sở giao dịch bảo hiểm toàn cầu phía bắc</BuyerUnitName>
+      <BuyerAddress>Tầng 4 số 141 Lê Duẩn - Phường Cửa Nam- Quận Hoàn Kiếm - Hà Nội</BuyerAddress>
+      <BuyerBankAccount></BuyerBankAccount>
+      <ReceiverEmail>cttoan@gic.com.vn</ReceiverEmail>
+      <ReceiverMobile>09034100080903410008</ReceiverMobile>
+      <ReceiverAddress>tầng 4- 141 Lê Duẩn Cửa Nam Hoàn Kiếm Thành phố Hà Nội</ReceiverAddress>
+      <ReceiverName>Cung Trọng Toàn</ReceiverName>
+      <PayMethodName>CK</PayMethodName>
+    </InvoiceData>
+    <InvoiceDetails>
+      <InvoiceDetails>
+        <InvoiceDetailID>502</InvoiceDetailID>
+        <InvoiceID>172</InvoiceID>
+        <ItemName>Thu phí cung cấp dịch vụ cho thuê máy chủ ảo theo hợp đồng số 111-17/VTM-IT JSC</ItemName>
+        <UnitName>Năm</UnitName>
+        <Qty>1</Qty>
+        <Price>5676000</Price>
+        <Amount>5676000</Amount>
+        <TaxRateID>3</TaxRateID>
+        <TaxRate>10</TaxRate>
+        <TaxName>10%</TaxName>
+        <TaxAmount>567600</TaxAmount>
+        <CreateDate>2017-02-14T15:46:43.337</CreateDate>
+        <LastUpdate>2017-02-14T15:46:43.337</LastUpdate>
+        <IsDiscount>false</IsDiscount>
+      </InvoiceDetails>
+    </InvoiceDetails>
+  </InvoiceDataXML>
+  <CKYDTU_DVI><Signature xmlns="http://www.w3.org/2000/09/xmldsig#"><SignedInfo><CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315#WithComments"></CanonicalizationMethod><SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"></SignatureMethod><Reference URI=""><Transforms><Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"></Transform></Transforms><DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"></DigestMethod><DigestValue>GeSHWEBi9e8tHTe615qhnX8WciY=</DigestValue></Reference></SignedInfo><SignatureValue>aZaB6u3N/L5bEDmYgH8rxRkLAEP/NBoGSfSik2XFdmoHsQ8Ay3M7xg9ZNIkZWoM7FhhK0AN0f3A/UZ6yyTAtwLRsYf9yVHGxJiThpQTNYZLsuYTm8JzqKDZDNkeTpz+xQtGXuiMtixI3awzSq7Sr39AME8+R4S3vSHnXbdtZa34=</SignatureValue><KeyInfo><KeyValue><RSAKeyValue><Modulus>0EHEs0q9s3S6V3ttrCnBUKlyxt/cnJTHPG8rXSWR1+rqXWMsxNLUUrHQtsLHKZ6PxWqXwUZgTmSNENrftq0/KMbSx2CaiVT0WDaxuNqdIO+wEKLPVOooU6g38bkW4loKL2p37ng1G/quZG6kivt8Yes8Zed1xMRminuJK7PAVM0=</Modulus><Exponent>AQAB</Exponent></RSAKeyValue></KeyValue><X509Data><X509IssuerSerial><X509IssuerName>CN=SmartSign, O=Cong ty co phan chu ky so VI NA, C=VN</X509IssuerName><X509SerialNumber>111697267684112045954429324769888104655</X509SerialNumber></X509IssuerSerial><X509SubjectName>C=VN, ST=HÀ NỘI, L=Đống Đa, CN=CÔNG TY CỔ PHẦN CÔNG NGHỆ THÔNG TIN VIỆT TIẾN MẠNH, UID=MST:0104848771, E=0104848771@vnpt-tvan.com</X509SubjectName><X509Certificate>MIIE1TCCA72gAwIBAgIQVAgceyLTThodkO4NfzzwzzANBgkqhkiG9w0BAQUFADBLMQswCQYDVQQGEwJWTjEoMCYGA1UEChMfQ29uZyB0eSBjbyBwaGFuIGNodSBreSBzbyBWSSBOQTESMBAGA1UEAxMJU21hcnRTaWduMB4XDTE1MDczMDAxMzk0N1oXDTE3MTEyNjA4MDIzNlowgcwxJzAlBgkqhkiG9w0BCQEWGDAxMDQ4NDg3NzFAdm5wdC10dmFuLmNvbTEeMBwGCgmSJomT8ixkAQEMDk1TVDowMTA0ODQ4NzcxMUowSAYDVQQDDEFDw5RORyBUWSBD4buUIFBI4bqmTiBDw5RORyBOR0jhu4YgVEjDlE5HIFRJTiBWSeG7hlQgVEnhur5OIE3huqBOSDEUMBIGA1UEBwwLxJDhu5FuZyDEkGExEjAQBgNVBAgMCUjDgCBO4buYSTELMAkGA1UEBhMCVk4wgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBANBBxLNKvbN0uld7bawpwVCpcsbf3JyUxzxvK10lkdfq6l1jLMTS1FKx0LbCxymej8Vql8FGYE5kjRDa37atPyjG0sdgmolU9Fg2sbjanSDvsBCiz1TqKFOoN/G5FuJaCi9qd+54NRv6rmRupIr7fGHrPGXndcTEZop7iSuzwFTNAgMBAAGjggG1MIIBsTA4BggrBgEFBQcBAQQsMCowKAYIKwYBBQUHMAGGHGh0dHA6Ly9vY3NwLnNtYXJ0c2lnbi5jb20udm4wHQYDVR0OBBYEFEMoFbQ4SVsmw8lNJI3V8bagZolFMAwGA1UdEwEB/wQCMAAwHwYDVR0jBBgwFoAUZYWp+Yk3neMI+ApJNJ2u+qXucHQwbQYDVR0gBGYwZDBiBgsrBgEEAYHtAwEIAzBTMCgGCCsGAQUFBwICMBweGgBDAFAAUwAgAHYAZQByAHMAaQBvAG4AIAAxMCcGCCsGAQUFBwIBFhtodHRwOi8vc21hcnRzaWduLmNvbS52bi9jcHMwfQYDVR0fBHYwdDByoB+gHYYbaHR0cDovL2NybC5zbWFydHNpZ24uY29tLnZuok+kTTBLMRIwEAYDVQQDDAlTbWFydFNpZ24xKDAmBgNVBAoMH0NvbmcgdHkgY28gcGhhbiBjaHUga3kgc28gVkkgTkExCzAJBgNVBAYTAlZOMA4GA1UdDwEB/wQEAwIDyDApBgNVHSUEIjAgBggrBgEFBQcDAgYIKwYBBQUHAwQGCisGAQQBgjcKAwwwDQYJKoZIhvcNAQEFBQADggEBAEA+C7r1XyaW2J9+1N6ry390ej3hiVc0oDnMXZNH1VRbZEn6XpRd8MxvE2InFwwZKVTSm/YtFGYE1hSYHfC4d0AqYmpt2LkD7cxpEkTv/FchkiuMWYnntsqqirP2o47gezb2Hrdz9RAbV+K8JW8RhzMGoP8qD3mN17biwIKoncjA9R+eZjDP9U3EWvo84u21HaCINxY5RtAcx4jEVMr8xu5LfNTzV2CEFHYmyhga3/FFImX1oy/+Uo8HSf9yVUBE9kAqLY2aoboUKM8AzZVaRm1yBnQkCUkaLDpc8DPEMi4uhrfOcjj5DHF2G0jG26sRKVS2bqtQbzEKJqV9P0nLu7I=</X509Certificate></X509Data></KeyInfo><Object><SignatureProperties><SignatureProperty Id="Timestamp" Target=""><date>2017/2/14</date><time>15:54:4</time><timezone>UTC +7</timezone></SignatureProperty></SignatureProperties></Object></Signature></CKYDTU_DVI>
+</InvoiceDataXMLSign>
