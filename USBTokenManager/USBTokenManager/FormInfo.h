@@ -6,6 +6,7 @@
 
 using namespace System;
 using namespace System::Security::Cryptography;
+using namespace System::Security::Cryptography::X509Certificates;
 using namespace std;
 using namespace System::Runtime::InteropServices;
 using namespace System::Text;
@@ -213,57 +214,55 @@ namespace USBTokenManager {
 		String^ RSAPubLicKey = gcnew String(RSA->ToXmlString(FALSE));
 		String^ RSAPrivateKey = gcnew String(RSA->ToXmlString(TRUE));
 
-		// 		DebugPrint("Private Key: %s", RSAPrivateKey);
-		// 		DebugPrint("Public Key: %s", RSAPubLicKey);
+		DebugPrint("Private Key: %s", RSAPrivateKey);
+		DebugPrint("Public Key: %s", RSAPubLicKey);
 
 		PCHAR szXmlPrivateKey = NULL;
 		szXmlPrivateKey = (PCHAR)Marshal::StringToHGlobalAnsi(RSAPrivateKey).ToPointer();
 		/*		DebugPrint("szSignature: %s", szXmlPrivateKey);*/
+// 
+// 		String^ fileName = gcnew String("D:\\1.txt");
+// 		FileStream^ stream = System::IO::File::OpenRead(fileName);
+// 
+// 		SHA256Managed^ sha = gcnew SHA256Managed();
+// 
+// 		cli::array<unsigned char>^ hash = sha->ComputeHash(stream);
+// 
+// 		DebugPrint("hash file: %s", Convert::ToBase64String(hash));
+// 
+// 		RSA->FromXmlString(RSAPubLicKey);
+// 		cli::array<unsigned char>^ Sign = RSA->Encrypt(hash, TRUE);
+// 
+// 		DebugPrint("Encrypt Message: %s", Convert::ToBase64String(Sign));
+// 
+// 		//		String^ strCert = Encoding::Unicode->GetString(Sign);
+// 		System::IO::File::WriteAllText("D:\\1.txt.sign", Convert::ToBase64String(Sign));
+// 
+// 
+// 		String^ ReadFromFile;
+// 		ReadFromFile = System::IO::File::ReadAllText("D:\\AccessTokenGitLab.sign");
+// 		RSA->FromXmlString(RSAPrivateKey);
+// 		cli::array<unsigned char>^ DecryptMess = RSA->Decrypt(Convert::FromBase64String(ReadFromFile), TRUE);
+// 		DebugPrint("Decrypt Message: %s", Convert::ToBase64String(DecryptMess));
+// 		// 		String^ fileName = gcnew String("D:\\AccessTokenGitLab.txt");
+// 		// 		FileStream^ stream = System::IO::File::OpenRead(fileName);
+// 
+// 		/*		SHA256Managed^ sha = gcnew SHA256Managed();*/
+// 		cli::array<unsigned char>^ hash1 = sha->ComputeHash(stream);
+// 		BOOL bIsSignatureValid = TRUE;
+// 
+// 		Boolean bIsEqual = IsEqualValue(DecryptMess, hash);
+// 		if (bIsEqual == TRUE)
+// 		{
+// 			MessageBox::Show(L"Signature valid");
+// 		}
+// 		else
+// 		{
+// 			MessageBox::Show(L"Signature invalid");
+// 		}
 
-		String^ fileName = gcnew String("D:\\AccessTokenGitLab.txt");
-		FileStream^ stream = System::IO::File::OpenRead(fileName);
-
-		SHA256Managed^ sha = gcnew SHA256Managed();
-
-		cli::array<unsigned char>^ hash = sha->ComputeHash(stream);
-
-		DebugPrint("hash file: %s", Convert::ToBase64String(hash));
-
-		RSA->FromXmlString(RSAPubLicKey);
-		cli::array<unsigned char>^ Sign = RSA->Encrypt(hash, TRUE);
-
-		DebugPrint("Encrypt Message: %s", Convert::ToBase64String(Sign));
-
-		//		String^ strCert = Encoding::Unicode->GetString(Sign);
-		System::IO::File::WriteAllText("D:\\AccessTokenGitLab.sign", Convert::ToBase64String(Sign));
-
-
-		String^ ReadFromFile;
-		ReadFromFile = System::IO::File::ReadAllText("D:\\AccessTokenGitLab.sign");
-		RSA->FromXmlString(RSAPrivateKey);
-		cli::array<unsigned char>^ DecryptMess = RSA->Decrypt(Convert::FromBase64String(ReadFromFile), TRUE);
-		DebugPrint("Decrypt Message: %s", Convert::ToBase64String(DecryptMess));
-		// 		String^ fileName = gcnew String("D:\\AccessTokenGitLab.txt");
-		// 		FileStream^ stream = System::IO::File::OpenRead(fileName);
-
-		/*		SHA256Managed^ sha = gcnew SHA256Managed();*/
-		cli::array<unsigned char>^ hash1 = sha->ComputeHash(stream);
-		BOOL bIsSignatureValid = TRUE;
-
-		Boolean bIsEqual = IsEqualValue(DecryptMess, hash);
-		if (bIsEqual == TRUE)
-		{
-			MessageBox::Show(L"Signature valid");
-		}
-		else
-		{
-			MessageBox::Show(L"Signature invalid");
-		}
-
-
-		//Crash khi gui c?c nhi?u nhu này, có th? do size du?i firmware nh? hon
 		DebugPrint("Size of Private key: %d", strlen(szXmlPrivateKey));
-		bResult = WriteSignature((PBYTE)szXmlPrivateKey, strlen(szXmlPrivateKey));
+		bResult = WriteSignature((PBYTE)szXmlPrivateKey, (USHORT)strlen(szXmlPrivateKey));
 		if (!bResult)
 		{
 			MessageBox::Show(L"Write Signature To Device Failed");
@@ -275,7 +274,33 @@ namespace USBTokenManager {
 		Marshal::FreeHGlobal((IntPtr)szXmlPrivateKey);
 
 		return;
-
 	}
+
+// 	private: X509Certificate2^ GetCertificateFromStore(string certName)
+// 	{
+// 
+// 		// Get the certificate store for the current user.
+// 		X509Store^ store = gcnew X509Store (StoreLocation::CurrentUser);
+// 		try
+// 		{
+// 			store->Open(OpenFlags::ReadOnly);
+// 
+// 			// Place all certificates in an X509Certificate2Collection object.
+// 			X509Certificate2Collection^ certCollection = store->Certificates;
+// 			// If using a certificate with a trusted root you do not need to FindByTimeValid, instead:
+// 			// currentCerts.Find(X509FindType.FindBySubjectDistinguishedName, certName, true);
+// 			X509Certificate2Collection^ currentCerts = certCollection->Find(X509FindType::FindByTimeValid, DateTime::Now, false);
+// 			X509Certificate2Collection^ signingCert = currentCerts->Find(X509FindType::FindBySubjectDistinguishedName, certName, false);
+// 			if (signingCert->Count == 0)
+// 				return NULL;
+// 			// Return the first certificate in the collection, has the right name and is current.
+// 			return signingCert[0];
+// 		}
+// 		finally
+// 		{
+// 			store->Close();
+// 		}
+// 	}
+
 	};
 }

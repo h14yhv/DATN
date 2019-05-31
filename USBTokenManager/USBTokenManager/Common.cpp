@@ -121,23 +121,23 @@ void DebugPrint(__in LPCSTR pszFormat, ...)
 
 	if (pszFormat == NULL) return;
 
-	szLog = (PCHAR)ALLOC(SMA_SIZE * sizeof(CHAR));
+	szLog = (PCHAR)ALLOC(MED_SIZE * sizeof(CHAR));
 	pTime = (SYSTEMTIME *)ALLOC(sizeof(SYSTEMTIME));
 	if (szLog == NULL || pTime == NULL)
 	{
 		return;
 	}
-	memset(szLog, 0, SMA_SIZE * sizeof(CHAR));
+	memset(szLog, 0, MED_SIZE * sizeof(CHAR));
 	memset(pTime, 0, sizeof(SYSTEMTIME));
 
 	va_start(args, pszFormat);
 
-	if (vsprintf_s(szLog, SMA_SIZE, pszFormat, args) > 0)
+	if (vsprintf_s(szLog, MED_SIZE, pszFormat, args) > 0)
 	{
 		std::string log = szLog;
 
 		GetLocalTime(pTime);
-		sprintf_s(szLog, SMA_SIZE, "\n[%d/%02d/%02d - %02d:%02d:%02d][USBTokenManager] ",
+		sprintf_s(szLog, MED_SIZE, "\n[%d/%02d/%02d - %02d:%02d:%02d][USBTokenManager] ",
 			pTime->wYear, pTime->wMonth, pTime->wDay,
 			pTime->wHour, pTime->wMinute, pTime->wSecond);
 		log = szLog + log;

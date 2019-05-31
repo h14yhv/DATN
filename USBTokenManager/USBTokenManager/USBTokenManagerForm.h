@@ -250,9 +250,9 @@ namespace USBTokenManager {
 			this->btnWriteSignature->Name = L"btnWriteSignature";
 			this->btnWriteSignature->Size = System::Drawing::Size(128, 31);
 			this->btnWriteSignature->TabIndex = 16;
-			this->btnWriteSignature->Text = L"Create Signature";
+			this->btnWriteSignature->Text = L"Generate Key";
 			this->btnWriteSignature->UseVisualStyleBackColor = true;
-			this->btnWriteSignature->Click += gcnew System::EventHandler(this, &USBTokenManagerForm::btnWriteSignature_Click);
+			this->btnWriteSignature->Click += gcnew System::EventHandler(this, &USBTokenManagerForm::btnGenKey_Click);
 			// 
 			// tbWriteSignature
 			// 
@@ -461,7 +461,7 @@ namespace USBTokenManager {
 		MessageBox::Show(L"Reset PIN Code Successfully");
 	}
 
-	private: System::Void btnWriteSignature_Click(System::Object^  sender, System::EventArgs^  e)
+	private: System::Void btnGenKey_Click(System::Object^  sender, System::EventArgs^  e)
 	{
 		FormInfo^ Form2 = gcnew FormInfo();
 		Form2->ShowDialog();
@@ -549,7 +549,7 @@ namespace USBTokenManager {
 		DebugPrint("Encrypt Message: %s", Convert::ToBase64String(SignForFile));
 
 		//		String^ strCert = Encoding::Unicode->GetString(Sign);
-		System::IO::File::WriteAllText(tbFileName->Text + ".sign", Convert::ToBase64String(SignForFile));
+		System::IO::File::WriteAllText(tbFileName->Text->Substring(0, tbFileName->Text->LastIndexOf(".")) + ".sign", Convert::ToBase64String(SignForFile));
 
 
 		String^ strName = gcnew String(szPrivateKey);
