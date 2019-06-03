@@ -71,7 +71,7 @@ namespace USBTokenManager {
 	private: System::Windows::Forms::GroupBox^  grbSignature;
 
 	private: System::Windows::Forms::Button^  btnReadSignature;
-	private: System::Windows::Forms::TextBox^  tbReadSignature;
+
 
 	private: System::Windows::Forms::Button^  btnBrowseFileName;
 
@@ -79,14 +79,22 @@ namespace USBTokenManager {
 
 	private: System::Windows::Forms::Label^  lblFileName;
 
-	private: System::Windows::Forms::ComboBox^  cbbListSignature;
-	private: System::Windows::Forms::Button^  btnExit;
-	private: System::Windows::Forms::Label^  lblSignatureWrite;
 
-	private: System::Windows::Forms::Label^  lblSignatureRead;
+	private: System::Windows::Forms::Button^  btnExit;
+
+
+
 
 	private: System::Windows::Forms::Button^  btnWriteSignature;
-	private: System::Windows::Forms::TextBox^  tbWriteSignature;
+
+	private: System::Windows::Forms::Label^  lbPublicFilePath;
+
+
+	private: System::Windows::Forms::TextBox^  tbPublicPath;
+	private: System::Windows::Forms::Button^  btbPublicKeyPath;
+	private: System::Windows::Forms::Button^  btnVerifySignature;
+
+
 
 	private:
 		/// <summary>
@@ -111,16 +119,15 @@ namespace USBTokenManager {
 			this->tbNewPINCode = (gcnew System::Windows::Forms::TextBox());
 			this->lblNewPinCode = (gcnew System::Windows::Forms::Label());
 			this->grbSignature = (gcnew System::Windows::Forms::GroupBox());
-			this->lblSignatureWrite = (gcnew System::Windows::Forms::Label());
-			this->lblSignatureRead = (gcnew System::Windows::Forms::Label());
+			this->btbPublicKeyPath = (gcnew System::Windows::Forms::Button());
+			this->btnVerifySignature = (gcnew System::Windows::Forms::Button());
+			this->tbPublicPath = (gcnew System::Windows::Forms::TextBox());
 			this->btnWriteSignature = (gcnew System::Windows::Forms::Button());
-			this->tbWriteSignature = (gcnew System::Windows::Forms::TextBox());
+			this->lbPublicFilePath = (gcnew System::Windows::Forms::Label());
 			this->btnReadSignature = (gcnew System::Windows::Forms::Button());
-			this->tbReadSignature = (gcnew System::Windows::Forms::TextBox());
 			this->btnBrowseFileName = (gcnew System::Windows::Forms::Button());
 			this->tbFileName = (gcnew System::Windows::Forms::TextBox());
 			this->lblFileName = (gcnew System::Windows::Forms::Label());
-			this->cbbListSignature = (gcnew System::Windows::Forms::ComboBox());
 			this->btnExit = (gcnew System::Windows::Forms::Button());
 			this->grbDevice->SuspendLayout();
 			this->grbSignature->SuspendLayout();
@@ -137,7 +144,7 @@ namespace USBTokenManager {
 			this->grbDevice->Controls->Add(this->lblNewPinCode);
 			this->grbDevice->Location = System::Drawing::Point(12, 3);
 			this->grbDevice->Name = L"grbDevice";
-			this->grbDevice->Size = System::Drawing::Size(663, 178);
+			this->grbDevice->Size = System::Drawing::Size(663, 160);
 			this->grbDevice->TabIndex = 13;
 			this->grbDevice->TabStop = false;
 			this->grbDevice->Text = L"Device";
@@ -208,45 +215,53 @@ namespace USBTokenManager {
 			// 
 			// grbSignature
 			// 
-			this->grbSignature->Controls->Add(this->lblSignatureWrite);
-			this->grbSignature->Controls->Add(this->lblSignatureRead);
+			this->grbSignature->Controls->Add(this->btbPublicKeyPath);
+			this->grbSignature->Controls->Add(this->btnVerifySignature);
+			this->grbSignature->Controls->Add(this->tbPublicPath);
 			this->grbSignature->Controls->Add(this->btnWriteSignature);
-			this->grbSignature->Controls->Add(this->tbWriteSignature);
+			this->grbSignature->Controls->Add(this->lbPublicFilePath);
 			this->grbSignature->Controls->Add(this->btnReadSignature);
-			this->grbSignature->Controls->Add(this->tbReadSignature);
 			this->grbSignature->Controls->Add(this->btnBrowseFileName);
 			this->grbSignature->Controls->Add(this->tbFileName);
 			this->grbSignature->Controls->Add(this->lblFileName);
-			this->grbSignature->Controls->Add(this->cbbListSignature);
 			this->grbSignature->Location = System::Drawing::Point(12, 187);
 			this->grbSignature->Name = L"grbSignature";
-			this->grbSignature->Size = System::Drawing::Size(663, 225);
+			this->grbSignature->Size = System::Drawing::Size(663, 175);
 			this->grbSignature->TabIndex = 14;
 			this->grbSignature->TabStop = false;
 			this->grbSignature->Text = L"Signatures";
 			// 
-			// lblSignatureWrite
+			// btbPublicKeyPath
 			// 
-			this->lblSignatureWrite->AutoSize = true;
-			this->lblSignatureWrite->Location = System::Drawing::Point(14, 190);
-			this->lblSignatureWrite->Name = L"lblSignatureWrite";
-			this->lblSignatureWrite->Size = System::Drawing::Size(106, 17);
-			this->lblSignatureWrite->TabIndex = 18;
-			this->lblSignatureWrite->Text = L"Signature Write";
+			this->btbPublicKeyPath->Location = System::Drawing::Point(512, 79);
+			this->btbPublicKeyPath->Name = L"btbPublicKeyPath";
+			this->btbPublicKeyPath->Size = System::Drawing::Size(128, 32);
+			this->btbPublicKeyPath->TabIndex = 22;
+			this->btbPublicKeyPath->Text = L"Browse";
+			this->btbPublicKeyPath->UseVisualStyleBackColor = true;
+			this->btbPublicKeyPath->Click += gcnew System::EventHandler(this, &USBTokenManagerForm::btnPublicKeyPath_Click);
 			// 
-			// lblSignatureRead
+			// btnVerifySignature
 			// 
-			this->lblSignatureRead->AutoSize = true;
-			this->lblSignatureRead->Location = System::Drawing::Point(14, 132);
-			this->lblSignatureRead->Name = L"lblSignatureRead";
-			this->lblSignatureRead->Size = System::Drawing::Size(107, 17);
-			this->lblSignatureRead->TabIndex = 17;
-			this->lblSignatureRead->Text = L"Signature Read";
+			this->btnVerifySignature->Location = System::Drawing::Point(352, 137);
+			this->btnVerifySignature->Name = L"btnVerifySignature";
+			this->btnVerifySignature->Size = System::Drawing::Size(128, 32);
+			this->btnVerifySignature->TabIndex = 21;
+			this->btnVerifySignature->Text = L"Verify Signature";
+			this->btnVerifySignature->UseVisualStyleBackColor = true;
+			this->btnVerifySignature->Click += gcnew System::EventHandler(this, &USBTokenManagerForm::btnVerifySignature_Click);
+			// 
+			// tbPublicPath
+			// 
+			this->tbPublicPath->Location = System::Drawing::Point(144, 84);
+			this->tbPublicPath->Name = L"tbPublicPath";
+			this->tbPublicPath->Size = System::Drawing::Size(303, 22);
+			this->tbPublicPath->TabIndex = 20;
 			// 
 			// btnWriteSignature
 			// 
 			this->btnWriteSignature->Enabled = false;
-			this->btnWriteSignature->Location = System::Drawing::Point(512, 187);
+			this->btnWriteSignature->Location = System::Drawing::Point(195, 138);
 			this->btnWriteSignature->Name = L"btnWriteSignature";
 			this->btnWriteSignature->Size = System::Drawing::Size(128, 31);
 			this->btnWriteSignature->TabIndex = 16;
@@ -254,17 +269,19 @@ namespace USBTokenManager {
 			this->btnWriteSignature->UseVisualStyleBackColor = true;
 			this->btnWriteSignature->Click += gcnew System::EventHandler(this, &USBTokenManagerForm::btnGenKey_Click);
 			// 
-			// tbWriteSignature
+			// lbPublicFilePath
 			// 
-			this->tbWriteSignature->Location = System::Drawing::Point(144, 187);
-			this->tbWriteSignature->Name = L"tbWriteSignature";
-			this->tbWriteSignature->Size = System::Drawing::Size(303, 22);
-			this->tbWriteSignature->TabIndex = 15;
+			this->lbPublicFilePath->AutoSize = true;
+			this->lbPublicFilePath->Location = System::Drawing::Point(14, 87);
+			this->lbPublicFilePath->Name = L"lbPublicFilePath";
+			this->lbPublicFilePath->Size = System::Drawing::Size(133, 17);
+			this->lbPublicFilePath->TabIndex = 19;
+			this->lbPublicFilePath->Text = L"Public Key File Path";
 			// 
 			// btnReadSignature
 			// 
 			this->btnReadSignature->Enabled = false;
-			this->btnReadSignature->Location = System::Drawing::Point(512, 125);
+			this->btnReadSignature->Location = System::Drawing::Point(512, 135);
 			this->btnReadSignature->Name = L"btnReadSignature";
 			this->btnReadSignature->Size = System::Drawing::Size(128, 31);
 			this->btnReadSignature->TabIndex = 13;
@@ -272,16 +289,9 @@ namespace USBTokenManager {
 			this->btnReadSignature->UseVisualStyleBackColor = true;
 			this->btnReadSignature->Click += gcnew System::EventHandler(this, &USBTokenManagerForm::btnSignFile_Click);
 			// 
-			// tbReadSignature
-			// 
-			this->tbReadSignature->Location = System::Drawing::Point(144, 129);
-			this->tbReadSignature->Name = L"tbReadSignature";
-			this->tbReadSignature->Size = System::Drawing::Size(303, 22);
-			this->tbReadSignature->TabIndex = 12;
-			// 
 			// btnBrowseFileName
 			// 
-			this->btnBrowseFileName->Location = System::Drawing::Point(512, 72);
+			this->btnBrowseFileName->Location = System::Drawing::Point(512, 26);
 			this->btnBrowseFileName->Name = L"btnBrowseFileName";
 			this->btnBrowseFileName->Size = System::Drawing::Size(128, 32);
 			this->btnBrowseFileName->TabIndex = 11;
@@ -291,7 +301,7 @@ namespace USBTokenManager {
 			// 
 			// tbFileName
 			// 
-			this->tbFileName->Location = System::Drawing::Point(144, 73);
+			this->tbFileName->Location = System::Drawing::Point(144, 31);
 			this->tbFileName->Name = L"tbFileName";
 			this->tbFileName->Size = System::Drawing::Size(303, 22);
 			this->tbFileName->TabIndex = 9;
@@ -299,23 +309,15 @@ namespace USBTokenManager {
 			// lblFileName
 			// 
 			this->lblFileName->AutoSize = true;
-			this->lblFileName->Location = System::Drawing::Point(14, 78);
+			this->lblFileName->Location = System::Drawing::Point(14, 31);
 			this->lblFileName->Name = L"lblFileName";
-			this->lblFileName->Size = System::Drawing::Size(71, 17);
+			this->lblFileName->Size = System::Drawing::Size(63, 17);
 			this->lblFileName->TabIndex = 7;
-			this->lblFileName->Text = L"File Name";
-			// 
-			// cbbListSignature
-			// 
-			this->cbbListSignature->FormattingEnabled = true;
-			this->cbbListSignature->Location = System::Drawing::Point(17, 21);
-			this->cbbListSignature->Name = L"cbbListSignature";
-			this->cbbListSignature->Size = System::Drawing::Size(623, 24);
-			this->cbbListSignature->TabIndex = 5;
+			this->lblFileName->Text = L"File Path";
 			// 
 			// btnExit
 			// 
-			this->btnExit->Location = System::Drawing::Point(524, 418);
+			this->btnExit->Location = System::Drawing::Point(524, 368);
 			this->btnExit->Name = L"btnExit";
 			this->btnExit->Size = System::Drawing::Size(128, 33);
 			this->btnExit->TabIndex = 15;
@@ -328,7 +330,7 @@ namespace USBTokenManager {
 			this->AutoScaleDimensions = System::Drawing::SizeF(8, 16);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->AutoSize = true;
-			this->ClientSize = System::Drawing::Size(691, 474);
+			this->ClientSize = System::Drawing::Size(691, 411);
 			this->Controls->Add(this->btnExit);
 			this->Controls->Add(this->grbSignature);
 			this->Controls->Add(this->grbDevice);
@@ -465,36 +467,34 @@ namespace USBTokenManager {
 	{
 		FormInfo^ Form2 = gcnew FormInfo();
 		Form2->ShowDialog();
-		
-// 		String^ strSignature = tbWriteSignature->Text;
-// 		PCHAR szSignature = NULL;
-// 		tbWriteSignature->ResetText();
-// 		BOOL bResult = TRUE;
-// 		if (strSignature->Length == 0)
-// 		{
-// 			MessageBox::Show(L"Signature Empty");
-// 			return;
-// 		}
-// 
-// 		szSignature = (PCHAR)Marshal::StringToHGlobalAnsi(strSignature).ToPointer();
-// 		bResult = WriteSignature((PBYTE)szSignature, (USHORT)strlen(szSignature));
-// 		if (!bResult)
-// 		{
-// 			MessageBox::Show(L"Write Signature To Device Failed");
-// 			Marshal::FreeHGlobal((IntPtr)szSignature);
-// 			return;
-// 		}
-// 		MessageBox::Show(L"Write Signature To Device Successfully");
-// 		Marshal::FreeHGlobal((IntPtr)szSignature);
+
+		// 		String^ strSignature = tbWriteSignature->Text;
+		// 		PCHAR szSignature = NULL;
+		// 		tbWriteSignature->ResetText();
+		// 		BOOL bResult = TRUE;
+		// 		if (strSignature->Length == 0)
+		// 		{
+		// 			MessageBox::Show(L"Signature Empty");
+		// 			return;
+		// 		}
+		// 
+		// 		szSignature = (PCHAR)Marshal::StringToHGlobalAnsi(strSignature).ToPointer();
+		// 		bResult = WriteSignature((PBYTE)szSignature, (USHORT)strlen(szSignature));
+		// 		if (!bResult)
+		// 		{
+		// 			MessageBox::Show(L"Write Signature To Device Failed");
+		// 			Marshal::FreeHGlobal((IntPtr)szSignature);
+		// 			return;
+		// 		}
+		// 		MessageBox::Show(L"Write Signature To Device Successfully");
+		// 		Marshal::FreeHGlobal((IntPtr)szSignature);
 		return;
 	}
 
 	private: System::Void btnSignFile_Click(System::Object^  sender, System::EventArgs^  e)
 	{
-		String^ strSignature = tbReadSignature->Text;
 		USHORT usPrivateKeySize = 0;
 		CHAR szPrivateKey[MAX_SIGNATURE_SIZE] = { 0 };
-		tbReadSignature->ResetText();
 		BOOL bResult = TRUE;
 
 		bResult = ReadSignature((PBYTE)szPrivateKey, &usPrivateKeySize);
@@ -514,7 +514,7 @@ namespace USBTokenManager {
 			PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
 			return;
 		}
-		
+
 		//Hash file with SHA256
 		SHA256Managed^ sha = gcnew SHA256Managed();
 		cli::array<unsigned char>^ strHashFile;
@@ -527,7 +527,7 @@ namespace USBTokenManager {
 			PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
 			return;
 		}
-		
+
 		DebugPrint("File Hashed: %s", Convert::ToBase64String(strHashFile));
 
 		//Lấy chữ ký từ thiết bị và tạo file lưu chữ ký
@@ -551,9 +551,7 @@ namespace USBTokenManager {
 		//		String^ strCert = Encoding::Unicode->GetString(Sign);
 		System::IO::File::WriteAllText(tbFileName->Text->Substring(0, tbFileName->Text->LastIndexOf(".")) + ".sign", Convert::ToBase64String(SignForFile));
 
-
 		String^ strName = gcnew String(szPrivateKey);
-		tbReadSignature->Text = strName;
 		return;
 	}
 
@@ -562,24 +560,20 @@ namespace USBTokenManager {
 		tbFileName->ResetText();
 		OpenFileDialog^ openFileDialogSign = gcnew OpenFileDialog;
 
-		openFileDialogSign->InitialDirectory = "c:\\";
+		openFileDialogSign->InitialDirectory = Application::StartupPath;
 		openFileDialogSign->Filter = "exe files (*.exe)|*.exe|All files (*.*)|*.*";
 		openFileDialogSign->FilterIndex = 2;
 		openFileDialogSign->RestoreDirectory = true;
 
 		if (openFileDialogSign->ShowDialog() == System::Windows::Forms::DialogResult::OK)
 		{
+			if (openFileDialogSign->FileName->Length == 0)
+			{
+				return;
+			}
 			String^ FileName = openFileDialogSign->FileName;
 			tbFileName->Text = FileName;
 		}
-
-		String^ fileName = openFileDialogSign->FileName;
-		FileStream^ stream = System::IO::File::OpenRead(fileName);
-
-		SHA256Managed^ sha = gcnew SHA256Managed();
-
-		cli::array<unsigned char>^ hash = sha->ComputeHash(stream);
-
 		return;
 	}
 
@@ -591,6 +585,98 @@ namespace USBTokenManager {
 		{
 			PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
 		}
+	}
+
+	private: System::Void btnPublicKeyPath_Click(System::Object^  sender, System::EventArgs^  e)
+	{
+		tbPublicPath->ResetText();
+		OpenFileDialog^ openFileDialogSign = gcnew OpenFileDialog;
+
+		openFileDialogSign->InitialDirectory = Application::StartupPath;
+		openFileDialogSign->Filter = "pub files (*.pub)|*.pub|All files (*.*)|*.*";
+		openFileDialogSign->FilterIndex = 2;
+		openFileDialogSign->RestoreDirectory = true;
+
+		if (openFileDialogSign->ShowDialog() == System::Windows::Forms::DialogResult::OK)
+		{
+			if (openFileDialogSign->FileName->Length == 0)
+			{
+				return;
+			}
+			String^ FileName = openFileDialogSign->FileName;
+			tbPublicPath->Text = FileName;
+		}
+	}
+
+	private: System::Void btnVerifySignature_Click(System::Object^  sender, System::EventArgs^  e)
+	{
+		//Làm nốt hàm Verify
+		RSACryptoServiceProvider^ RSA = gcnew RSACryptoServiceProvider(2048);
+		String^ PublicKeyData = System::IO::File::ReadAllText(tbPublicPath->Text);
+		try
+		{
+			RSA->FromXmlString(PublicKeyData);
+		}
+		catch (const std::exception&)
+		{
+			PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+			return;
+		}
+
+		String^ SignFromFile = System::IO::File::ReadAllText(tbFileName->Text->Substring(0, tbFileName->Text->LastIndexOf(".")) + ".sign");
+		cli::array<unsigned char>^ DecryptMess;
+		try
+		{
+			//Chỉ có public key, đang decrypt lỗi
+			DecryptMess = RSA->Decrypt(Convert::FromBase64String(SignFromFile), FALSE);
+		}
+		catch (const std::exception&)
+		{
+			PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+			return;
+		}
+
+		DebugPrint("Decrypt Message: %s", Convert::ToBase64String(DecryptMess));
+
+		//Sign file hiện tại
+		FileStream^ StreamFileVerify;
+		try
+		{
+			StreamFileVerify = System::IO::File::OpenRead(tbFileName->Text);
+		}
+		catch (const std::exception&)
+		{
+			PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+			return;
+		}
+		SHA256Managed^ sha = gcnew SHA256Managed();
+		cli::array<unsigned char>^ HashFile = sha->ComputeHash(StreamFileVerify);
+		BOOL bIsSignatureValid = TRUE;
+
+		Boolean bIsEqual = IsEqualValue(DecryptMess, HashFile);
+		if (bIsEqual == TRUE)
+		{
+			MessageBox::Show(L"Signature valid");
+		}
+		else
+		{
+			MessageBox::Show(L"Signature invalid");
+		}
+	}
+
+	public: System::Boolean IsEqualValue(cli::array<unsigned char>^ arr1, cli::array<unsigned char>^ arr2)
+	{
+		if (arr1->Length != arr2->Length)
+			return FALSE;
+
+		for (int i = 0; i < arr1->Length; i++)
+		{
+			if (arr1[i] != arr2[i])
+			{
+				return FALSE;
+			}
+		}
+		return TRUE;
 	}
 	};
 }
