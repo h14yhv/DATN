@@ -212,8 +212,9 @@ namespace USBTokenManager {
 		RSACryptoServiceProvider^ RSA = gcnew RSACryptoServiceProvider(2048);
 		String^ RSAPubLicKey = gcnew String(RSA->ToXmlString(FALSE));
 
+// 		X509Certificate2^ x509 = gcnew X509Certificate2();
+// 		x509->PrivateKey
 
-		// FAILED HERE : TRUE trả về all giá trị
 /*		RSAParameters RSAKeyInfo = RSA->ExportParameters(true);*/
 		String^ RSAPrivateKey = gcnew String(RSA->ToXmlString(TRUE));
 

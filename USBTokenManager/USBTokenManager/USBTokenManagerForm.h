@@ -151,7 +151,7 @@ namespace USBTokenManager {
 			// 
 			// btnAuthenticate
 			// 
-			this->btnAuthenticate->Location = System::Drawing::Point(512, 64);
+			this->btnAuthenticate->Location = System::Drawing::Point(512, 56);
 			this->btnAuthenticate->Name = L"btnAuthenticate";
 			this->btnAuthenticate->Size = System::Drawing::Size(128, 32);
 			this->btnAuthenticate->TabIndex = 11;
@@ -162,7 +162,7 @@ namespace USBTokenManager {
 			// btnSetPIN
 			// 
 			this->btnSetPIN->Enabled = false;
-			this->btnSetPIN->Location = System::Drawing::Point(512, 117);
+			this->btnSetPIN->Location = System::Drawing::Point(512, 113);
 			this->btnSetPIN->Name = L"btnSetPIN";
 			this->btnSetPIN->Size = System::Drawing::Size(128, 30);
 			this->btnSetPIN->TabIndex = 9;
@@ -181,7 +181,7 @@ namespace USBTokenManager {
 			// 
 			// tbPINCode
 			// 
-			this->tbPINCode->Location = System::Drawing::Point(144, 59);
+			this->tbPINCode->Location = System::Drawing::Point(144, 64);
 			this->tbPINCode->Name = L"tbPINCode";
 			this->tbPINCode->PasswordChar = '*';
 			this->tbPINCode->Size = System::Drawing::Size(303, 22);
@@ -274,9 +274,9 @@ namespace USBTokenManager {
 			this->lbPublicFilePath->AutoSize = true;
 			this->lbPublicFilePath->Location = System::Drawing::Point(14, 87);
 			this->lbPublicFilePath->Name = L"lbPublicFilePath";
-			this->lbPublicFilePath->Size = System::Drawing::Size(133, 17);
+			this->lbPublicFilePath->Size = System::Drawing::Size(107, 17);
 			this->lbPublicFilePath->TabIndex = 19;
-			this->lbPublicFilePath->Text = L"Public Key File Path";
+			this->lbPublicFilePath->Text = L"Public Key Path";
 			// 
 			// btnReadSignature
 			// 
@@ -389,6 +389,29 @@ namespace USBTokenManager {
 
 		String^ strName = gcnew String(g_DeviceData.DevicePath);
 		cbbListDevice->Items->Add(strName);
+
+		//To at device
+		OVERLAPPED OverlapppedSync = { 0 };
+		DATA_MESSAGE pDataMessage = { 0 };
+		ULONG ulDataSizeTransferred;
+
+		//Get Data Message from Device
+		OverlapppedSync.hEvent = CreateEventW(NULL, FALSE, FALSE, L"IsFlushedEvent");
+		if (OverlapppedSync.hEvent == NULL)
+		{
+			PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+			return;
+		}
+
+		bResult = ReadFromDevice((PBYTE)&pDataMessage, sizeof(DATA_MESSAGE), &ulDataSizeTransferred, &OverlapppedSync, WAIT_TIME);
+		if (bResult == FALSE || ulDataSizeTransferred == 0)
+		{
+			PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+			//return;
+		}
+		CLOSE_HANDLE(OverlapppedSync.hEvent);
+
+
 		return;
 	}
 
@@ -528,6 +551,7 @@ namespace USBTokenManager {
 			return;
 		}
 
+		stream->Close();
 		DebugPrint("File Hashed: %s", Convert::ToBase64String(strHashFile));
 
 		//Lấy chữ ký từ thiết bị và tạo file lưu chữ ký
@@ -538,7 +562,8 @@ namespace USBTokenManager {
 		cli::array<unsigned char>^ SignForFile;
 		try
 		{
-			SignForFile = RSA->Encrypt(strHashFile, TRUE);
+			SignForFile = RSA->SignHash(strHashFile, CryptoConfig::MapNameToOID("SHA256"));
+			//			SignForFile = RSA->Encrypt(strHashFile, TRUE);
 		}
 		catch (const std::exception&)
 		{
@@ -548,8 +573,9 @@ namespace USBTokenManager {
 
 		DebugPrint("Encrypt Message: %s", Convert::ToBase64String(SignForFile));
 
-		//		String^ strCert = Encoding::Unicode->GetString(Sign);
 		System::IO::File::WriteAllText(tbFileName->Text->Substring(0, tbFileName->Text->LastIndexOf(".")) + ".sign", Convert::ToBase64String(SignForFile));
+
+		MessageBox::Show(L"Sign File Successfully");
 
 		String^ strName = gcnew String(szPrivateKey);
 		return;
@@ -611,56 +637,48 @@ namespace USBTokenManager {
 	private: System::Void btnVerifySignature_Click(System::Object^  sender, System::EventArgs^  e)
 	{
 		//Làm nốt hàm Verify
+		if (tbPublicPath->Text->Length == 0)
+		{
+			MessageBox::Show(L"Public File Path Empty");
+			return;
+		}
+		if (tbFileName->Text->Length == 0)
+		{
+			MessageBox::Show(L"File Path Empty");
+			return;
+		}
 		RSACryptoServiceProvider^ RSA = gcnew RSACryptoServiceProvider(2048);
 		String^ PublicKeyData = System::IO::File::ReadAllText(tbPublicPath->Text);
-		try
+
+		if (PublicKeyData->Length == 0)
 		{
-			RSA->FromXmlString(PublicKeyData);
-		}
-		catch (const std::exception&)
-		{
-			PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+			MessageBox::Show(L"Public File Data Empty");
 			return;
 		}
-
-		String^ SignFromFile = System::IO::File::ReadAllText(tbFileName->Text->Substring(0, tbFileName->Text->LastIndexOf(".")) + ".sign");
-		cli::array<unsigned char>^ DecryptMess;
-		try
-		{
-			//Chỉ có public key, đang decrypt lỗi
-			DecryptMess = RSA->Decrypt(Convert::FromBase64String(SignFromFile), FALSE);
-		}
-		catch (const std::exception&)
-		{
-			PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
-			return;
-		}
-
-		DebugPrint("Decrypt Message: %s", Convert::ToBase64String(DecryptMess));
-
+		RSA->FromXmlString(PublicKeyData);
 		//Sign file hiện tại
 		FileStream^ StreamFileVerify;
-		try
-		{
-			StreamFileVerify = System::IO::File::OpenRead(tbFileName->Text);
-		}
-		catch (const std::exception&)
-		{
-			PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
-			return;
-		}
+
+		StreamFileVerify = System::IO::File::OpenRead(tbFileName->Text);
 		SHA256Managed^ sha = gcnew SHA256Managed();
 		cli::array<unsigned char>^ HashFile = sha->ComputeHash(StreamFileVerify);
+		StreamFileVerify->Close();
 		BOOL bIsSignatureValid = TRUE;
 
-		Boolean bIsEqual = IsEqualValue(DecryptMess, HashFile);
-		if (bIsEqual == TRUE)
+		String^ SignFromFile = System::IO::File::ReadAllText(tbFileName->Text->Substring(0, tbFileName->Text->LastIndexOf(".")) + ".sign");
+
+		//Chỉ có public key, đang decrypt lỗi
+		cli::array<unsigned char>^ strSignatureFile = gcnew cli::array<unsigned char>(SMA_SIZE);
+
+		strSignatureFile = Convert::FromBase64String(SignFromFile);
+		bool bIsVerifyOK = RSA->VerifyHash(HashFile, CryptoConfig::MapNameToOID("SHA256"), strSignatureFile);
+		if (bIsVerifyOK == TRUE)
 		{
-			MessageBox::Show(L"Signature valid");
+			MessageBox::Show(L"Signature Valid");
 		}
 		else
 		{
-			MessageBox::Show(L"Signature invalid");
+			MessageBox::Show(L"Signature Invalid");
 		}
 	}
 

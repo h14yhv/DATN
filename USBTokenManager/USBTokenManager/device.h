@@ -24,7 +24,7 @@ DEFINE_GUID(GUID_DEVINTERFACE_USBHIDManager,
 //{88bae032 - 5a81 - 49f0 - bc3d - a4ff138216d6}
 DEFINE_GUID(ClassGUID, 0x88bae032, 0x5a81, 0x49f0, 0xbc, 0x3d, 0xa4, 0xff, 0x13, 0x82, 0x16, 0xd6);
 
-#define WAIT_TIME 2000
+#define WAIT_TIME 500
 #define CHECK_CLEAN_TIME 200
 
 typedef struct _DEVICE_DATA {

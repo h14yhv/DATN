@@ -265,6 +265,22 @@ BOOL GetConfigDevice()
 			DebugPrint("uInterruptPipeId: %d", g_DeviceData.uInterruptPipeId);
 		}
 	}
+
+// 	UCHAR flag = FALSE;
+// 	ULONG timeout;
+// 	bResult = WinUsb_SetPipePolicy(g_DeviceData.hWinUSBInterfaceHandle, g_DeviceData.uBulkOutPipeId, PIPE_TRANSFER_TIMEOUT, sizeof(ULONG), &timeout);
+// 	if (bResult == FALSE)
+// 	{
+// 		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+// 		RET_THIS_STATUS(bResult, FALSE);
+// 	}
+// 
+// 	bResult = WinUsb_SetPipePolicy(g_DeviceData.hWinUSBInterfaceHandle, g_DeviceData.uBulkInPipeId, AUTO_CLEAR_STALL, sizeof(UCHAR), &flag);
+// 	if (bResult == FALSE)
+// 	{
+// 		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+// 		RET_THIS_STATUS(bResult, FALSE);
+// 	}
 RET_LABEL:
 	return bResult;
 }
@@ -298,6 +314,7 @@ BOOL WriteToDevice(PBYTE pDataMessage, ULONG ulBufferLength, PULONG pulLenghTran
 	if (dwRetWait == WAIT_TIMEOUT || dwRetWait == WAIT_FAILED)
 	{
 		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		WinUsb_ResetPipe(g_DeviceData.hWinUSBInterfaceHandle, g_DeviceData.uBulkOutPipeId);
 		return FALSE;
 	}
 
@@ -340,6 +357,7 @@ BOOL ReadFromDevice(PBYTE pDataMessage, ULONG ulBufferLength, PULONG pulLenghTra
 	if (dwRetWait == WAIT_TIMEOUT || dwRetWait == WAIT_FAILED)
 	{
 		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		WinUsb_ResetPipe(g_DeviceData.hWinUSBInterfaceHandle, g_DeviceData.uBulkInPipeId);
 		return FALSE;
 	}
 
@@ -572,15 +590,15 @@ BOOL WriteSignature(PBYTE pSignature, USHORT usSignSize)
 	}
 
 	//Set information for packet
+	pDataMessage->iIndex = 0;
 	pDataMessage->iCmd = USB_CMD_WRITE;
 	pDataMessage->iLenSign = usSignSize;
 
 	while (pDataMessage->iOffset < usSignSize)
 	{
-		Sleep(400);
+		Sleep(200);
 		MEMSET(pDataMessage->SignData, 0, MAX_DATA_SIGN_SIZE);
 
-		pDataMessage->iIndex = (BYTE)iIndexPacket;
 		memcpy_s(pDataMessage->SignData, MAX_DATA_SIGN_SIZE, pSignature + pDataMessage->iOffset, MAX_DATA_SIGN_SIZE);
 
 		//Send Data Message
@@ -592,7 +610,6 @@ BOOL WriteSignature(PBYTE pSignature, USHORT usSignSize)
 		}
 
 		pDataMessage->iOffset += MAX_DATA_SIGN_SIZE;
-		iIndexPacket++;
 	}
 
 	//Get Data Message from Device
@@ -647,6 +664,7 @@ BOOL ReadSignature(PBYTE pSignature, PUSHORT usSignSizeTransferred)
 	}
 
 	//Set information for packet
+	pDataMessage->iIndex = 0;
 	pDataMessage->iCmd = USB_CMD_READ;
 	bStatus = WriteToDevice((PUCHAR)pDataMessage, sizeof(SIGN_MESSAGE), &ulDataSizeTransferred, &OverlapppedSync, WAIT_TIME);
 	if (bStatus == FALSE || ulDataSizeTransferred == 0)
