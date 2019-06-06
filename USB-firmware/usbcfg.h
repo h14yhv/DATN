@@ -105,7 +105,7 @@
 */
 
 #define USB_CLASS           1
-#define USB_HID             0
+#define USB_HID             1
 #define USB_HID_IF_NUM      0
 #define USB_MSC             0
 #define USB_MSC_IF_NUM      0

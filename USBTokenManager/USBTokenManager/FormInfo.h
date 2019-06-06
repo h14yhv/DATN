@@ -12,6 +12,10 @@ using namespace System::Runtime::InteropServices;
 using namespace System::Text;
 using namespace System::IO;
 using namespace System::Diagnostics;
+using namespace Org::BouncyCastle::OpenSsl;
+using namespace Org::BouncyCastle::Crypto;
+using namespace Org::BouncyCastle::Security;
+using namespace Org::BouncyCastle::Crypto::Parameters;
 
 namespace USBTokenManager {
 
@@ -212,10 +216,7 @@ namespace USBTokenManager {
 		RSACryptoServiceProvider^ RSA = gcnew RSACryptoServiceProvider(2048);
 		String^ RSAPubLicKey = gcnew String(RSA->ToXmlString(FALSE));
 
-// 		X509Certificate2^ x509 = gcnew X509Certificate2();
-// 		x509->PrivateKey
-
-/*		RSAParameters RSAKeyInfo = RSA->ExportParameters(true);*/
+		/*		RSAParameters RSAKeyInfo = RSA->ExportParameters(true);*/
 		String^ RSAPrivateKey = gcnew String(RSA->ToXmlString(TRUE));
 
 		DebugPrint("Private Key: %s", RSAPrivateKey);
@@ -223,11 +224,39 @@ namespace USBTokenManager {
 
 		System::IO::File::WriteAllText(tbUserName->Text + ".pub", RSAPubLicKey);
 
-		tbUserName->ResetText();
-		tbPassword->ResetText();
+
 		PCHAR szXmlPrivateKey = NULL;
 		szXmlPrivateKey = (PCHAR)Marshal::StringToHGlobalAnsi(RSAPrivateKey).ToPointer();
-		/*		DebugPrint("szSignature: %s", szXmlPrivateKey);*/
+
+//		openssl req -new -sha256 -nodes -out %HOSTNAME_FILE%.csr -newkey rsa:2048 -keyout %HOSTNAME_FILE%.key -config %HOSTNAME_FILE%.cnf
+
+		String^ Cmd = gcnew String("/C openssl req -new -sha256 -nodes -out " + tbUserName->Text + ".csr -newkey rsa:2048 -keyout " +
+			tbUserName->Text + ".key -config svpgate.cnf");
+		DebugPrint("Command: %s", Cmd);
+	
+
+		System::Diagnostics::Process^ process = gcnew System::Diagnostics::Process();
+		System::Diagnostics::ProcessStartInfo^ startInfo = gcnew System::Diagnostics::ProcessStartInfo();
+		startInfo->WindowStyle = System::Diagnostics::ProcessWindowStyle::Hidden;
+		startInfo->FileName = "cmd.exe";
+		startInfo->Arguments = Cmd;
+		process->StartInfo = startInfo;
+		process->Start();
+
+		Sleep(1000);
+		Cmd->Empty;
+
+		// openssl x509 -req -in %HOSTNAME_FILE%.csr -CA %CA% -CAkey %CA_KEY% -CAcreateserial -out %HOSTNAME_FILE%.crt -days 3650 -extfile %HOSTNAME_FILE%.cnf -extensions v3_req
+		Cmd = gcnew String("/C openssl x509 -req -in " + tbUserName->Text + ".csr -CA CA.pem -CAkey CA-key.pem -CAcreateserial -out " +
+			tbUserName->Text + ".crt -days 3650 -extfile svpgate.cnf -extensions v3_req");
+
+		DebugPrint("Command: %s", Cmd);
+
+		startInfo->Arguments = Cmd;
+		process->Start();
+
+		tbUserName->ResetText();
+		tbPassword->ResetText();
 
 		DebugPrint("Size of Private key: %d", strlen(szXmlPrivateKey));
 		bResult = WriteSignature((PBYTE)szXmlPrivateKey, (USHORT)strlen(szXmlPrivateKey));

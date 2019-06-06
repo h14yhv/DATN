@@ -49,8 +49,24 @@ OpenDevice(
 		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
 		return hr;
 	}
-
 	DeviceData->bIsHandlesOpen = TRUE;
+
+	ULONG timeout;
+	bResult = WinUsb_SetPipePolicy(g_DeviceData.hWinUSBInterfaceHandle, g_DeviceData.uBulkOutPipeId, PIPE_TRANSFER_TIMEOUT, sizeof(ULONG), &timeout);
+	if (bResult == FALSE)
+	{
+		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		RET_THIS_STATUS(bResult, FALSE);
+	}
+
+	bResult = WinUsb_SetPipePolicy(g_DeviceData.hWinUSBInterfaceHandle, g_DeviceData.uBulkInPipeId, PIPE_TRANSFER_TIMEOUT, sizeof(ULONG), &timeout);
+	if (bResult == FALSE)
+	{
+		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+		RET_THIS_STATUS(bResult, FALSE);
+	}
+
+RET_LABEL:
 	return hr;
 }
 
@@ -266,21 +282,21 @@ BOOL GetConfigDevice()
 		}
 	}
 
-// 	UCHAR flag = FALSE;
-// 	ULONG timeout;
-// 	bResult = WinUsb_SetPipePolicy(g_DeviceData.hWinUSBInterfaceHandle, g_DeviceData.uBulkOutPipeId, PIPE_TRANSFER_TIMEOUT, sizeof(ULONG), &timeout);
-// 	if (bResult == FALSE)
-// 	{
-// 		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
-// 		RET_THIS_STATUS(bResult, FALSE);
-// 	}
-// 
-// 	bResult = WinUsb_SetPipePolicy(g_DeviceData.hWinUSBInterfaceHandle, g_DeviceData.uBulkInPipeId, AUTO_CLEAR_STALL, sizeof(UCHAR), &flag);
-// 	if (bResult == FALSE)
-// 	{
-// 		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
-// 		RET_THIS_STATUS(bResult, FALSE);
-// 	}
+	// 	UCHAR flag = FALSE;
+	// 	ULONG timeout;
+	// 	bResult = WinUsb_SetPipePolicy(g_DeviceData.hWinUSBInterfaceHandle, g_DeviceData.uBulkOutPipeId, PIPE_TRANSFER_TIMEOUT, sizeof(ULONG), &timeout);
+	// 	if (bResult == FALSE)
+	// 	{
+	// 		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+	// 		RET_THIS_STATUS(bResult, FALSE);
+	// 	}
+	// 
+	// 	bResult = WinUsb_SetPipePolicy(g_DeviceData.hWinUSBInterfaceHandle, g_DeviceData.uBulkInPipeId, AUTO_CLEAR_STALL, sizeof(UCHAR), &flag);
+	// 	if (bResult == FALSE)
+	// 	{
+	// 		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+	// 		RET_THIS_STATUS(bResult, FALSE);
+	// 	}
 RET_LABEL:
 	return bResult;
 }
@@ -358,6 +374,7 @@ BOOL ReadFromDevice(PBYTE pDataMessage, ULONG ulBufferLength, PULONG pulLenghTra
 	{
 		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
 		WinUsb_ResetPipe(g_DeviceData.hWinUSBInterfaceHandle, g_DeviceData.uBulkInPipeId);
+		WinUsb_ResetPipe(g_DeviceData.hWinUSBInterfaceHandle, g_DeviceData.uBulkOutPipeId);
 		return FALSE;
 	}
 
@@ -385,12 +402,12 @@ BOOL FlushDevice()
 		RET_THIS_STATUS(bStatus, FALSE);
 	}
 
-// 	bStatus = WinUsb_FlushPipe(g_DeviceData.hWinUSBInterfaceHandle, g_DeviceData.uBulkInPipeId);
-// 	if (bStatus == FALSE)
-// 	{
-// 		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
-// 		RET_THIS_STATUS(bStatus, FALSE);
-// 	}
+	// 	bStatus = WinUsb_FlushPipe(g_DeviceData.hWinUSBInterfaceHandle, g_DeviceData.uBulkInPipeId);
+	// 	if (bStatus == FALSE)
+	// 	{
+	// 		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+	// 		RET_THIS_STATUS(bStatus, FALSE);
+	// 	}
 
 	OverlapppedSync.hEvent = CreateEventW(NULL, FALSE, FALSE, L"IsFlushedEvent");
 	if (OverlapppedSync.hEvent == NULL)
@@ -501,12 +518,12 @@ BOOL AuthenticateDevice(PCHAR szPassword)
 	}
 	MEMSET(pDataMessage, 0, sizeof(DATA_MESSAGE));
 
-// 	bStatus = FlushDevice();
-// 	if (bStatus == FALSE)
-// 	{
-// 		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
-// 		RET_THIS_STATUS(bStatus, FALSE);
-// 	}
+	// 	bStatus = FlushDevice();
+	// 	if (bStatus == FALSE)
+	// 	{
+	// 		PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+	// 		RET_THIS_STATUS(bStatus, FALSE);
+	// 	}
 
 	OverlapppedSync.hEvent = CreateEventW(NULL, FALSE, FALSE, L"AuthenticateEvent");
 	if (OverlapppedSync.hEvent == NULL)

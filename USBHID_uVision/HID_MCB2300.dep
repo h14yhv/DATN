@@ -1,56 +1,0 @@
-Dependencies for Project 'HID', Target 'MCB2300': (DO NOT MODIFY !)
-F (.\LPC2300.s)(0x51C7C79A)(--cpu ARM7TDMI --pd "__EVAL SETA 1" -g --apcs=interwork --pd "__MICROLIB SETA 1"-I C:\Keil\ARM\RV31\INC-I C:\Keil\ARM\CMSIS\Include-I C:\Keil\ARM\Inc\Philips--list .\lst\lpc2300.lst --xref -o .\obj\lpc2300.o --depend .\obj\lpc2300.d)
-F (.\usbcfg.h)(0x5CADBA30)()
-F (.\usbcore.c)(0x51C7C79A)(-c --cpu ARM7TDMI -D__EVAL -D__MICROLIB -g -O0 --apcs=interwork -I C:\Keil\ARM\RV31\INC-I C:\Keil\ARM\CMSIS\Include-I C:\Keil\ARM\Inc\Philips-o .\obj\usbcore.o --omf_browse .\obj\usbcore.crf --depend .\obj\usbcore.d)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\type.h)(0x51C7C79A)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\usb.h)(0x51C7C798)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\usbcfg.h)(0x5CADBA30)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\usbhw.h)(0x51C7C79A)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\usbcore.h)(0x51C7C79A)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\usbdesc.h)(0x51C7C79A)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\usbuser.h)(0x51C7C79A)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\hid.h)(0x51C7C79A)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\hiduser.h)(0x51C7C79A)
-F (.\usbdesc.c)(0x5CADA7E8)(-c --cpu ARM7TDMI -D__EVAL -D__MICROLIB -g -O0 --apcs=interwork -I C:\Keil\ARM\RV31\INC-I C:\Keil\ARM\CMSIS\Include-I C:\Keil\ARM\Inc\Philips-o .\obj\usbdesc.o --omf_browse .\obj\usbdesc.crf --depend .\obj\usbdesc.d)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\type.h)(0x51C7C79A)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\usb.h)(0x51C7C798)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\usbcfg.h)(0x5CADBA30)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\usbdesc.h)(0x51C7C79A)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\hid.h)(0x51C7C79A)
-F (.\usbhw.c)(0x51C7C79A)(-c --cpu ARM7TDMI -D__EVAL -D__MICROLIB -g -O0 --apcs=interwork -I C:\Keil\ARM\RV31\INC-I C:\Keil\ARM\CMSIS\Include-I C:\Keil\ARM\Inc\Philips-o .\obj\usbhw.o --omf_browse .\obj\usbhw.crf --depend .\obj\usbhw.d)
-I (C:\Keil\ARM\Inc\Philips\LPC23xx.H)(0x51C7C74C)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\type.h)(0x51C7C79A)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\usb.h)(0x51C7C798)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\usbcfg.h)(0x5CADBA30)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\usbreg.h)(0x51C7C79A)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\usbhw.h)(0x51C7C79A)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\usbcore.h)(0x51C7C79A)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\usbuser.h)(0x51C7C79A)
-F (.\usbuser.c)(0x5CADBAD0)(-c --cpu ARM7TDMI -D__EVAL -D__MICROLIB -g -O0 --apcs=interwork -I C:\Keil\ARM\RV31\INC-I C:\Keil\ARM\CMSIS\Include-I C:\Keil\ARM\Inc\Philips-o .\obj\usbuser.o --omf_browse .\obj\usbuser.crf --depend .\obj\usbuser.d)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\type.h)(0x51C7C79A)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\usb.h)(0x51C7C798)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\usbcfg.h)(0x5CADBA30)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\usbhw.h)(0x51C7C79A)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\usbcore.h)(0x51C7C79A)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\usbuser.h)(0x51C7C79A)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\hiduser.h)(0x51C7C79A)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\demo.h)(0x51C7C79A)
-F (.\hiduser.c)(0x51C7C79A)(-c --cpu ARM7TDMI -D__EVAL -D__MICROLIB -g -O0 --apcs=interwork -I C:\Keil\ARM\RV31\INC-I C:\Keil\ARM\CMSIS\Include-I C:\Keil\ARM\Inc\Philips-o .\obj\hiduser.o --omf_browse .\obj\hiduser.crf --depend .\obj\hiduser.d)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\type.h)(0x51C7C79A)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\usb.h)(0x51C7C798)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\hid.h)(0x51C7C79A)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\usbcfg.h)(0x5CADBA30)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\usbcore.h)(0x51C7C79A)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\hiduser.h)(0x51C7C79A)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\demo.h)(0x51C7C79A)
-F (.\demo.c)(0x5CAD9F00)(-c --cpu ARM7TDMI -D__EVAL -D__MICROLIB -g -O0 --apcs=interwork -I C:\Keil\ARM\RV31\INC-I C:\Keil\ARM\CMSIS\Include-I C:\Keil\ARM\Inc\Philips-o .\obj\demo.o --omf_browse .\obj\demo.crf --depend .\obj\demo.d)
-I (C:\Keil\ARM\Inc\Philips\LPC23xx.H)(0x51C7C74C)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\type.h)(0x51C7C79A)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\usb.h)(0x51C7C798)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\usbcfg.h)(0x5CADBA30)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\usbhw.h)(0x51C7C79A)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\demo.h)(0x51C7C79A)
-I (C:\Users\HuyHV\Desktop\SHARE_VM\DATN\USBHID_uVision\LCD.h)(0x51C7C79A)
-F (.\LCD_4bit.c)(0x51C7C79A)(-c --cpu ARM7TDMI -D__EVAL -D__MICROLIB -g -O0 --apcs=interwork -I C:\Keil\ARM\RV31\INC-I C:\Keil\ARM\CMSIS\Include-I C:\Keil\ARM\Inc\Philips-o .\obj\lcd_4bit.o --omf_browse .\obj\lcd_4bit.crf --depend .\obj\lcd_4bit.d)
-I (C:\Keil\ARM\Inc\Philips\LPC23xx.H)(0x51C7C74C)
-F (.\Abstract.txt)(0x51C7C798)()
