@@ -59,11 +59,13 @@ namespace USBTokenManager {
 
 	private: System::Windows::Forms::Label^  lblUserName;
 	private: System::Windows::Forms::TextBox^  tbUserName;
-	private: System::Windows::Forms::TextBox^  tbPassword;
+	private: System::Windows::Forms::TextBox^  tbSubjectName;
+
 
 	private: System::Windows::Forms::TextBox^  tbNewPINCode;
 	private: System::Windows::Forms::Label^  lblPassword;
 	private: System::Windows::Forms::Button^  btnExit;
+
 
 	private:
 		/// <summary>
@@ -84,7 +86,7 @@ namespace USBTokenManager {
 			this->btnCreateSignature = (gcnew System::Windows::Forms::Button());
 			this->lblUserName = (gcnew System::Windows::Forms::Label());
 			this->tbUserName = (gcnew System::Windows::Forms::TextBox());
-			this->tbPassword = (gcnew System::Windows::Forms::TextBox());
+			this->tbSubjectName = (gcnew System::Windows::Forms::TextBox());
 			this->lblPassword = (gcnew System::Windows::Forms::Label());
 			this->grbDevice->SuspendLayout();
 			this->SuspendLayout();
@@ -95,20 +97,20 @@ namespace USBTokenManager {
 			this->grbDevice->Controls->Add(this->btnCreateSignature);
 			this->grbDevice->Controls->Add(this->lblUserName);
 			this->grbDevice->Controls->Add(this->tbUserName);
-			this->grbDevice->Controls->Add(this->tbPassword);
+			this->grbDevice->Controls->Add(this->tbSubjectName);
 			this->grbDevice->Controls->Add(this->lblPassword);
 			this->grbDevice->Location = System::Drawing::Point(12, 12);
 			this->grbDevice->Name = L"grbDevice";
-			this->grbDevice->Size = System::Drawing::Size(387, 158);
+			this->grbDevice->Size = System::Drawing::Size(405, 158);
 			this->grbDevice->TabIndex = 14;
 			this->grbDevice->TabStop = false;
 			this->grbDevice->Text = L"Account";
 			// 
 			// btnExit
 			// 
-			this->btnExit->Location = System::Drawing::Point(270, 106);
+			this->btnExit->Location = System::Drawing::Point(272, 106);
 			this->btnExit->Name = L"btnExit";
-			this->btnExit->Size = System::Drawing::Size(107, 32);
+			this->btnExit->Size = System::Drawing::Size(112, 32);
 			this->btnExit->TabIndex = 12;
 			this->btnExit->Text = L"Exit";
 			this->btnExit->UseVisualStyleBackColor = true;
@@ -116,11 +118,11 @@ namespace USBTokenManager {
 			// 
 			// btnCreateSignature
 			// 
-			this->btnCreateSignature->Location = System::Drawing::Point(98, 106);
+			this->btnCreateSignature->Location = System::Drawing::Point(99, 106);
 			this->btnCreateSignature->Name = L"btnCreateSignature";
-			this->btnCreateSignature->Size = System::Drawing::Size(125, 32);
+			this->btnCreateSignature->Size = System::Drawing::Size(138, 32);
 			this->btnCreateSignature->TabIndex = 11;
-			this->btnCreateSignature->Text = L"Create Signature";
+			this->btnCreateSignature->Text = L"Generate Key Pair";
 			this->btnCreateSignature->UseVisualStyleBackColor = true;
 			this->btnCreateSignature->Click += gcnew System::EventHandler(this, &FormInfo::btnCreateSignature_Click);
 			// 
@@ -141,28 +143,27 @@ namespace USBTokenManager {
 			this->tbUserName->TabIndex = 8;
 			this->tbUserName->TextChanged += gcnew System::EventHandler(this, &FormInfo::tbUserName_TextChanged);
 			// 
-			// tbPassword
+			// tbSubjectName
 			// 
-			this->tbPassword->Location = System::Drawing::Point(128, 62);
-			this->tbPassword->Name = L"tbPassword";
-			this->tbPassword->PasswordChar = '*';
-			this->tbPassword->Size = System::Drawing::Size(221, 22);
-			this->tbPassword->TabIndex = 6;
+			this->tbSubjectName->Location = System::Drawing::Point(128, 62);
+			this->tbSubjectName->Name = L"tbSubjectName";
+			this->tbSubjectName->Size = System::Drawing::Size(221, 22);
+			this->tbSubjectName->TabIndex = 6;
 			// 
 			// lblPassword
 			// 
 			this->lblPassword->AutoSize = true;
 			this->lblPassword->Location = System::Drawing::Point(6, 67);
 			this->lblPassword->Name = L"lblPassword";
-			this->lblPassword->Size = System::Drawing::Size(69, 17);
+			this->lblPassword->Size = System::Drawing::Size(96, 17);
 			this->lblPassword->TabIndex = 7;
-			this->lblPassword->Text = L"Password";
+			this->lblPassword->Text = L"Subject Name";
 			// 
 			// FormInfo
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(8, 16);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-			this->ClientSize = System::Drawing::Size(407, 180);
+			this->ClientSize = System::Drawing::Size(433, 180);
 			this->Controls->Add(this->grbDevice);
 			this->Icon = (cli::safe_cast<System::Drawing::Icon^>(resources->GetObject(L"$this.Icon")));
 			this->Name = L"FormInfo";
@@ -206,8 +207,8 @@ namespace USBTokenManager {
 			return;
 		}
 
-		String^ strPassword = tbPassword->Text;
-		if (strPassword->Length == 0)
+		String^ strSubjectName = tbSubjectName->Text;
+		if (strSubjectName->Length == 0)
 		{
 			MessageBox::Show(L"Password Empty");
 			return;
@@ -216,47 +217,20 @@ namespace USBTokenManager {
 		RSACryptoServiceProvider^ RSA = gcnew RSACryptoServiceProvider(2048);
 		String^ RSAPubLicKey = gcnew String(RSA->ToXmlString(FALSE));
 
-		/*		RSAParameters RSAKeyInfo = RSA->ExportParameters(true);*/
 		String^ RSAPrivateKey = gcnew String(RSA->ToXmlString(TRUE));
 
 		DebugPrint("Private Key: %s", RSAPrivateKey);
 		DebugPrint("Public Key: %s", RSAPubLicKey);
 
 		System::IO::File::WriteAllText(tbUserName->Text + ".pub", RSAPubLicKey);
+		System::IO::File::AppendAllText(tbUserName->Text + ".pub", "\r\n");
+		System::IO::File::AppendAllText(tbUserName->Text + ".pub", tbSubjectName->Text);
 
+		tbUserName->ResetText();
+		tbSubjectName->ResetText();
 
 		PCHAR szXmlPrivateKey = NULL;
 		szXmlPrivateKey = (PCHAR)Marshal::StringToHGlobalAnsi(RSAPrivateKey).ToPointer();
-
-//		openssl req -new -sha256 -nodes -out %HOSTNAME_FILE%.csr -newkey rsa:2048 -keyout %HOSTNAME_FILE%.key -config %HOSTNAME_FILE%.cnf
-
-		String^ Cmd = gcnew String("/C openssl req -new -sha256 -nodes -out " + tbUserName->Text + ".csr -newkey rsa:2048 -keyout " +
-			tbUserName->Text + ".key -config svpgate.cnf");
-		DebugPrint("Command: %s", Cmd);
-	
-
-		System::Diagnostics::Process^ process = gcnew System::Diagnostics::Process();
-		System::Diagnostics::ProcessStartInfo^ startInfo = gcnew System::Diagnostics::ProcessStartInfo();
-		startInfo->WindowStyle = System::Diagnostics::ProcessWindowStyle::Hidden;
-		startInfo->FileName = "cmd.exe";
-		startInfo->Arguments = Cmd;
-		process->StartInfo = startInfo;
-		process->Start();
-
-		Sleep(1000);
-		Cmd->Empty;
-
-		// openssl x509 -req -in %HOSTNAME_FILE%.csr -CA %CA% -CAkey %CA_KEY% -CAcreateserial -out %HOSTNAME_FILE%.crt -days 3650 -extfile %HOSTNAME_FILE%.cnf -extensions v3_req
-		Cmd = gcnew String("/C openssl x509 -req -in " + tbUserName->Text + ".csr -CA CA.pem -CAkey CA-key.pem -CAcreateserial -out " +
-			tbUserName->Text + ".crt -days 3650 -extfile svpgate.cnf -extensions v3_req");
-
-		DebugPrint("Command: %s", Cmd);
-
-		startInfo->Arguments = Cmd;
-		process->Start();
-
-		tbUserName->ResetText();
-		tbPassword->ResetText();
 
 		DebugPrint("Size of Private key: %d", strlen(szXmlPrivateKey));
 		bResult = WriteSignature((PBYTE)szXmlPrivateKey, (USHORT)strlen(szXmlPrivateKey));
@@ -272,5 +246,5 @@ namespace USBTokenManager {
 
 		return;
 	}
-	};
+};
 }

@@ -10,6 +10,7 @@ using namespace std;
 using namespace System::Runtime::InteropServices;
 using namespace System;
 using namespace System::Security::Cryptography;
+using namespace System::Xml;
 
 extern DEVICE_DATA g_DeviceData;
 
@@ -417,10 +418,6 @@ namespace USBTokenManager {
 
 	private: System::Void btnAuthenticate_Click(System::Object^  sender, System::EventArgs^  e)
 	{
-		btnSetPIN->Enabled = TRUE;
-		btnReadSignature->Enabled = TRUE;
-		btnWriteSignature->Enabled = TRUE;
-
 		String^ strPassword = tbPINCode->Text;
 		tbPINCode->ResetText();
 		BOOL bResult = TRUE;
@@ -563,7 +560,6 @@ namespace USBTokenManager {
 		try
 		{
 			SignForFile = RSA->SignHash(strHashFile, CryptoConfig::MapNameToOID("SHA256"));
-			//			SignForFile = RSA->Encrypt(strHashFile, TRUE);
 		}
 		catch (const std::exception&)
 		{
@@ -648,14 +644,27 @@ namespace USBTokenManager {
 			return;
 		}
 		RSACryptoServiceProvider^ RSA = gcnew RSACryptoServiceProvider(2048);
-		String^ PublicKeyData = System::IO::File::ReadAllText(tbPublicPath->Text);
 
-		if (PublicKeyData->Length == 0)
+		//Đọc file puclic key
+		System::IO::StreamReader^ FilePublicKey = gcnew System::IO::StreamReader(tbPublicPath->Text, Encoding::UTF8, true, MED_SIZE);
+
+		String^ PublicKeyData = gcnew String(FilePublicKey->ReadLine());
+		if (PublicKeyData == nullptr)
 		{
-			MessageBox::Show(L"Public File Data Empty");
+			PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
 			return;
 		}
+		String^ SubjectName = gcnew String(FilePublicKey->ReadLine());
+		if (SubjectName == nullptr)
+		{
+			PrintError("Function %s failed at %d in %s", __FUNCTION__, __LINE__, __FILE__);
+			return;
+		}
+		DebugPrint("SignFromFile: %s", PublicKeyData);
+		DebugPrint("SubjectName: %s", SubjectName);
+
 		RSA->FromXmlString(PublicKeyData);
+
 		//Sign file hiện tại
 		FileStream^ StreamFileVerify;
 
@@ -665,16 +674,18 @@ namespace USBTokenManager {
 		StreamFileVerify->Close();
 		BOOL bIsSignatureValid = TRUE;
 
-		String^ SignFromFile = System::IO::File::ReadAllText(tbFileName->Text->Substring(0, tbFileName->Text->LastIndexOf(".")) + ".sign");
 
-		//Chỉ có public key, đang decrypt lỗi
+		//Đọc file sign
+ 		String^ SignFromFile = System::IO::File::ReadAllText(tbFileName->Text->Substring(0, tbFileName->Text->LastIndexOf(".")) + ".sign");
+
+		//Chỉ có public key
 		cli::array<unsigned char>^ strSignatureFile = gcnew cli::array<unsigned char>(SMA_SIZE);
 
 		strSignatureFile = Convert::FromBase64String(SignFromFile);
 		bool bIsVerifyOK = RSA->VerifyHash(HashFile, CryptoConfig::MapNameToOID("SHA256"), strSignatureFile);
 		if (bIsVerifyOK == TRUE)
 		{
-			MessageBox::Show(L"Signature Valid");
+			MessageBox::Show("Signature Valid: " + SubjectName);
 		}
 		else
 		{
